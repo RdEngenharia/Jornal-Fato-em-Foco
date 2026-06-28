@@ -101,12 +101,13 @@ export async function getCoverImagesForArticles(
 ): Promise<Record<number, string>> {
   if (articleIds.length === 0) return {};
 
-  const { rows } = await sql<{ article_id: number; url: string }>`
-    SELECT DISTINCT ON (article_id) article_id, url
-    FROM article_media
-    WHERE article_id = ANY(${articleIds}) AND media_type = 'image'
-    ORDER BY article_id, display_order ASC, id ASC;
-  `;
+  const { rows } = await sql.query(
+    `SELECT DISTINCT ON (article_id) article_id, url
+     FROM article_media
+     WHERE article_id = ANY($1::int[]) AND media_type = 'image'
+     ORDER BY article_id, display_order ASC, id ASC;`,
+    [articleIds]
+  );
 
   const map: Record<number, string> = {};
   for (const row of rows) {
