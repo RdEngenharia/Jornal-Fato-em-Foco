@@ -7,8 +7,8 @@ export default function SobrePage() {
     <main className="min-h-screen bg-paper">
       <header className="sticky top-0 z-10 bg-paper/95 backdrop-blur-sm border-b border-ink/10 px-5 py-4 sm:px-10">
         <div className="mx-auto max-w-3xl flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-terracotta" />
+          <Link href="/" className="flex items-center gap-2.5">
+            <img src="/logo.png" alt="Fato em Foco" className="w-10 h-10 rounded-full" />
             <h1 className="font-display text-2xl font-extrabold text-ink tracking-tight">
               Fato em Foco
             </h1>

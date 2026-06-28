@@ -4,6 +4,7 @@ import { getPublishedArticleById, getMediaByArticleId, type ArticleMedia } from 
 import AdSlot from "@/components/AdSlot";
 import SensitiveImage from "@/components/SensitiveImage";
 import WhatsAppTipBanner from "@/components/WhatsAppTipBanner";
+import ShareButton from "@/components/ShareButton";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -94,7 +95,8 @@ export default async function ArticlePage({
     <main className="min-h-screen bg-paper">
       <header className="border-b border-ink/10 px-6 py-6 sm:px-10">
         <div className="mx-auto max-w-3xl flex items-center justify-between">
-          <Link href="/">
+          <Link href="/" className="flex items-center gap-2.5">
+            <img src="/logo.png" alt="Fato em Foco" className="w-9 h-9 rounded-full" />
             <h1 className="font-display text-2xl font-bold text-ink tracking-tight">
               Fato em Foco
             </h1>
@@ -121,6 +123,10 @@ export default async function ArticlePage({
         <h1 className="font-display text-3xl sm:text-4xl font-bold text-ink leading-tight mb-5">
           {article.title}
         </h1>
+
+        <div className="mb-6">
+          <ShareButton title={article.title} />
+        </div>
 
         {coverImage && (
           <ArticleImage
