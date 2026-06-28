@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getPendingArticles } from "@/lib/db";
 import ReliabilityBadge from "@/components/ReliabilityBadge";
+import AudioUploadCard from "@/components/AudioUploadCard";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,10 @@ export default async function AdminHome() {
             : `${articles.length} ${articles.length === 1 ? "matéria" : "matérias"} aguardando sua decisão.`}
         </p>
       </header>
+
+      <div className="mx-auto max-w-3xl mb-6">
+        <AudioUploadCard />
+      </div>
 
       <div className="mx-auto max-w-3xl space-y-3">
         {articles.length === 0 && (
