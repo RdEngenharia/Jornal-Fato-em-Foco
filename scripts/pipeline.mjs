@@ -74,12 +74,6 @@ const FEEDS = [
     url: "https://ba.agenciasebrae.com.br/feed/",
     defaultCategory: "negocios",
   },
-  {
-    name: "Agência Brasil - Política",
-    type: "oficial",
-    url: "http://agenciabrasil.ebc.com.br/rss/politica/feed.xml",
-    defaultCategory: "politica",
-  },
 ];
 
 const RELIABILITY_THRESHOLD = 50; // matérias abaixo disso não vão para o Redator
@@ -219,13 +213,8 @@ function isRelevant(item) {
     return true;
   }
 
-  // Fontes nacionais institucionais: o filtro mecânico não exige menção
-  // explícita à região (notícia nacional relevante raramente cita a
-  // cidade), deixando o julgamento de relevância (local x nacional com
-  // impacto real) a cargo do Redator — ver critério no prompt de
-  // writeArticle.
-  const NATIONAL_SOURCES = ["TSE - Tribunal Superior Eleitoral", "Agência Brasil - Política"];
-  if (NATIONAL_SOURCES.includes(item.sourceName)) {
+  if (item.sourceName === "TSE - Tribunal Superior Eleitoral") {
+    // Deixa passar para o Redator avaliar relevância nacional vs. local.
     return true;
   }
 

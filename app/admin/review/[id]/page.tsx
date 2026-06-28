@@ -6,7 +6,6 @@ import {
   getValidationLogByArticleId,
   getMediaByArticleId,
 } from "@/lib/db";
-import { checkPlagiarism } from "@/lib/plagiarism-check";
 import ReliabilityBadge from "@/components/ReliabilityBadge";
 import MediaGalleryField from "@/components/MediaGalleryField";
 import { publishAction, rejectAction } from "@/app/admin/review/actions";
@@ -18,12 +17,6 @@ const SOURCE_TYPE_LABEL: Record<string, string> = {
   portal_regional: "Portal regional",
   rede_social: "Rede social de órgão público",
   outro: "Outra fonte",
-};
-
-const RISK_STYLES = {
-  baixo: { bg: "bg-sage/10", text: "text-sage", label: "Baixo risco de cópia literal" },
-  atencao: { bg: "bg-terracotta/10", text: "text-terracotta", label: "Atenção: trechos repetidos da fonte" },
-  alto: { bg: "bg-terracotta-dark/15", text: "text-terracotta-dark", label: "Alto risco: revise antes de publicar" },
 };
 
 export default async function ReviewPage({
@@ -40,12 +33,6 @@ export default async function ReviewPage({
     getValidationLogByArticleId(id),
     getMediaByArticleId(id),
   ]);
-
-  const plagiarism = checkPlagiarism(
-    article.body,
-    sources.map((s) => s.raw_excerpt ?? "")
-  );
-  const riskStyle = RISK_STYLES[plagiarism.riskLevel];
 
   return (
     <main className="min-h-screen bg-paper px-6 py-10 sm:px-10">
@@ -115,15 +102,7 @@ export default async function ReviewPage({
             </div>
 
             <div>
-              <label className="font-sans text-xs text-mute block mb-1">
-                Corpo da matéria
-              </label>
-              <p className="font-sans text-[11px] text-mute/80 mb-2">
-                Para inserir uma imagem da galeria no meio do texto, digite{" "}
-                <code className="bg-ink/5 px-1 rounded">[IMAGEM:2]</code> no
-                ponto exato onde ela deve aparecer (o número é a posição da
-                imagem na galeria acima — a capa é a 1).
-              </p>
+              <label className="font-sans text-xs text-mute block mb-1">Corpo da matéria</label>
               <textarea
                 name="body"
                 defaultValue={article.body}
@@ -151,37 +130,6 @@ export default async function ReviewPage({
 
           {/* Coluna lateral: fontes cruzadas e raciocínio da validação */}
           <aside className="space-y-6">
-            <section className={`rounded-lg border border-ink/10 p-5 ${riskStyle.bg}`}>
-              <h3 className="font-sans text-xs uppercase tracking-widest text-mute mb-2">
-                Similaridade com a fonte
-              </h3>
-              <p className={`font-display text-2xl font-bold ${riskStyle.text}`}>
-                {plagiarism.matchPercentage}%
-              </p>
-              <p className={`font-sans text-sm font-medium mt-1 ${riskStyle.text}`}>
-                {riskStyle.label}
-              </p>
-              <p className="font-sans text-xs text-mute mt-2 leading-relaxed">
-                Mede quanto do texto gerado contém sequências de 8+ palavras
-                idênticas ao resumo da fonte original. Compara só com o
-                resumo (RSS), não com o artigo completo da fonte.
-              </p>
-              {plagiarism.matchedPhrases.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-ink/10">
-                  <p className="font-sans text-xs font-medium text-ink mb-1">
-                    Trechos repetidos encontrados:
-                  </p>
-                  <ul className="space-y-1">
-                    {plagiarism.matchedPhrases.map((phrase, i) => (
-                      <li key={i} className="font-sans text-xs text-ink/70 italic">
-                        &quot;...{phrase}...&quot;
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </section>
-
             <section className="rounded-lg border border-ink/10 bg-white p-5">
               <h3 className="font-sans text-xs uppercase tracking-widest text-mute mb-3">
                 Fontes cruzadas ({sources.length})
