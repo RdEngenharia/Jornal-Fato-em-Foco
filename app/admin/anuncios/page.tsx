@@ -14,6 +14,27 @@ const SLOT_LABELS: Record<string, string> = {
   "ad-article-footer": "Rodapé da matéria",
 };
 
+function daysUntil(dateStr: string): number {
+  const diffMs = new Date(dateStr).getTime() - Date.now();
+  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+}
+
+function expiryLabel(dateStr: string): string {
+  const days = daysUntil(dateStr);
+  const formatted = new Date(dateStr).toLocaleDateString("pt-BR");
+  if (days < 0) return `Expirou em ${formatted}`;
+  if (days === 0) return `Expira hoje (${formatted})`;
+  if (days <= 7) return `Expira em ${days} dia(s) — ${formatted}`;
+  return `Expira em ${formatted}`;
+}
+
+function expiryStyle(dateStr: string): string {
+  const days = daysUntil(dateStr);
+  if (days < 0) return "text-terracotta-dark";
+  if (days <= 7) return "text-terracotta";
+  return "text-mute";
+}
+
 export default async function AdsAdminPage() {
   const ads = await getAllAdvertisements();
 
@@ -65,6 +86,11 @@ export default async function AdsAdminPage() {
                   {ad.advertiser_name}
                 </p>
                 <p className="font-sans text-xs text-mute truncate">{ad.link_url}</p>
+                {ad.ends_at && (
+                  <p className={`font-sans text-xs mt-0.5 font-medium ${expiryStyle(ad.ends_at)}`}>
+                    {expiryLabel(ad.ends_at)}
+                  </p>
+                )}
                 <div className="flex flex-wrap gap-1 mt-1.5">
                   {ad.slot_ids.map((slot) => (
                     <span

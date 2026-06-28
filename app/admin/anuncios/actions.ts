@@ -19,11 +19,19 @@ export async function createAdAction(formData: FormData) {
   const linkUrl = String(formData.get("linkUrl"));
   const slotIds = ALL_SLOTS.filter((slot) => formData.get(`slot_${slot}`) === "on");
 
+  const startsAtRaw = String(formData.get("startsAt") || "");
+  const endsAtRaw = String(formData.get("endsAt") || "");
+  // Datas vêm do <input type="date"> como "AAAA-MM-DD". A expiração é
+  // ajustada para o fim do dia (23:59:59), para o anúncio continuar
+  // visível durante todo o último dia contratado.
+  const startsAt = startsAtRaw ? new Date(`${startsAtRaw}T00:00:00`).toISOString() : null;
+  const endsAt = endsAtRaw ? new Date(`${endsAtRaw}T23:59:59`).toISOString() : null;
+
   if (!advertiserName || !imageUrl || !linkUrl || slotIds.length === 0) {
     redirect("/admin/anuncios?error=campos_obrigatorios");
   }
 
-  await createAdvertisement({ advertiserName, imageUrl, linkUrl, slotIds });
+  await createAdvertisement({ advertiserName, imageUrl, linkUrl, slotIds, startsAt, endsAt });
   revalidatePath("/");
   revalidatePath("/admin/anuncios");
   redirect("/admin/anuncios?created=1");

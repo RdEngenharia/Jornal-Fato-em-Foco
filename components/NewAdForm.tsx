@@ -89,6 +89,34 @@ export default function NewAdForm() {
         )}
       </div>
 
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="font-sans text-xs text-mute block mb-1">
+            Início (opcional)
+          </label>
+          <input
+            type="date"
+            name="startsAt"
+            className="w-full font-sans text-sm bg-paper border border-ink/10 rounded-md px-3 py-2 focus:border-terracotta"
+          />
+        </div>
+        <div>
+          <label className="font-sans text-xs text-mute block mb-1">
+            Expira em (opcional)
+          </label>
+          <input
+            type="date"
+            name="endsAt"
+            className="w-full font-sans text-sm bg-paper border border-ink/10 rounded-md px-3 py-2 focus:border-terracotta"
+          />
+        </div>
+      </div>
+      <p className="font-sans text-[11px] text-mute/70 -mt-2">
+        Deixe em branco para anúncio sem prazo. Definindo a data de
+        expiração, o anúncio some automaticamente do site nesse dia, sem
+        precisar remover manualmente.
+      </p>
+
       <div>
         <label className="font-sans text-xs text-mute block mb-2">
           Onde exibir (selecione um ou mais)
