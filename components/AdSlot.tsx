@@ -2,7 +2,7 @@
 // diretamente (cadastrado em /admin/anuncios) para este slot — se não
 // houver nenhum ativo, mostra um placeholder discreto no lugar.
 import Link from "next/link";
-import { getActiveAdForSlot } from "@/lib/db";
+import { getActiveAdForSlot, type Advertisement } from "@/lib/db";
 
 type AdSlotProps = {
   id: string;
@@ -10,10 +10,32 @@ type AdSlotProps = {
   minHeight?: string;
 };
 
+function AdContent({ ad, minHeight }: { ad: Advertisement; minHeight: string }) {
+  return (
+    <>
+      <div className="relative" style={{ minHeight }}>
+        <img
+          src={ad.image_url}
+          alt={ad.advertiser_name}
+          className="w-full h-full object-cover"
+        />
+        <span className="absolute top-1.5 right-1.5 bg-ink/70 text-white text-[9px] font-sans px-1.5 py-0.5 rounded uppercase tracking-wide">
+          Publicidade
+        </span>
+      </div>
+      {ad.description && (
+        <p className="font-sans text-xs text-ink/70 px-2.5 py-2 bg-white leading-snug">
+          {ad.description}
+        </p>
+      )}
+    </>
+  );
+}
+
 export default async function AdSlot({ id, label = "Publicidade", minHeight = "100px" }: AdSlotProps) {
   const ad = await getActiveAdForSlot(id);
 
-  if (ad) {
+  if (ad && ad.link_url) {
     return (
       <Link
         href={ad.link_url}
@@ -21,22 +43,17 @@ export default async function AdSlot({ id, label = "Publicidade", minHeight = "1
         rel="noopener noreferrer sponsored"
         className="block rounded-lg overflow-hidden border border-ink/10"
       >
-        <div className="relative" style={{ minHeight }}>
-          <img
-            src={ad.image_url}
-            alt={ad.advertiser_name}
-            className="w-full h-full object-cover"
-          />
-          <span className="absolute top-1.5 right-1.5 bg-ink/70 text-white text-[9px] font-sans px-1.5 py-0.5 rounded uppercase tracking-wide">
-            Publicidade
-          </span>
-        </div>
-        {ad.description && (
-          <p className="font-sans text-xs text-ink/70 px-2.5 py-2 bg-white leading-snug">
-            {ad.description}
-          </p>
-        )}
+        <AdContent ad={ad} minHeight={minHeight} />
       </Link>
+    );
+  }
+
+  if (ad) {
+    // Anúncio sem link de destino: imagem estática, não clicável.
+    return (
+      <div className="rounded-lg overflow-hidden border border-ink/10">
+        <AdContent ad={ad} minHeight={minHeight} />
+      </div>
     );
   }
 

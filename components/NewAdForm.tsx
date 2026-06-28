@@ -109,13 +109,18 @@ export default function NewAdForm() {
       </div>
 
       <div>
-        <label className="font-sans text-xs text-mute block mb-1">Link de destino</label>
+        <label className="font-sans text-xs text-mute block mb-1">
+          Link de destino (opcional)
+        </label>
         <input
           name="linkUrl"
-          required
           placeholder="https://wa.me/55... ou site da empresa"
           className="w-full font-sans text-sm bg-paper border border-ink/10 rounded-md px-3 py-2 focus:border-terracotta"
         />
+        <p className="font-sans text-[11px] text-mute/70 mt-1">
+          Deixe em branco para o anúncio aparecer só como imagem, sem
+          direcionar a lugar nenhum quando clicado.
+        </p>
       </div>
 
       <div>

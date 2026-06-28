@@ -17,7 +17,7 @@ export async function createAdAction(formData: FormData) {
   const advertiserName = String(formData.get("advertiserName"));
   const description = String(formData.get("description") || "").trim() || null;
   const imageUrl = String(formData.get("imageUrl"));
-  const linkUrl = String(formData.get("linkUrl"));
+  const linkUrl = String(formData.get("linkUrl") || "").trim() || null;
   const slotIds = ALL_SLOTS.filter((slot) => formData.get(`slot_${slot}`) === "on");
 
   const startsAtRaw = String(formData.get("startsAt") || "");
@@ -28,7 +28,7 @@ export async function createAdAction(formData: FormData) {
   const startsAt = startsAtRaw ? new Date(`${startsAtRaw}T00:00:00`).toISOString() : null;
   const endsAt = endsAtRaw ? new Date(`${endsAtRaw}T23:59:59`).toISOString() : null;
 
-  if (!advertiserName || !imageUrl || !linkUrl || slotIds.length === 0) {
+  if (!advertiserName || !imageUrl || slotIds.length === 0) {
     redirect("/admin/anuncios?error=campos_obrigatorios");
   }
 

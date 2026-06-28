@@ -216,7 +216,7 @@ export type Advertisement = {
   advertiser_name: string;
   description: string | null;
   image_url: string;
-  link_url: string;
+  link_url: string | null;
   slot_ids: string[];
   active: boolean;
   starts_at: string | null;
@@ -251,7 +251,7 @@ export async function createAdvertisement(input: {
   advertiserName: string;
   description?: string | null;
   imageUrl: string;
-  linkUrl: string;
+  linkUrl?: string | null;
   slotIds: string[];
   startsAt?: string | null;
   endsAt?: string | null;
@@ -264,7 +264,7 @@ export async function createAdvertisement(input: {
       input.advertiserName,
       input.description ?? null,
       input.imageUrl,
-      input.linkUrl,
+      input.linkUrl ?? null,
       input.slotIds,
       input.startsAt ?? null,
       input.endsAt ?? null,
