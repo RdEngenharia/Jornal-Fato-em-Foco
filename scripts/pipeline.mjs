@@ -34,31 +34,91 @@ const FEEDS = [
     name: "Radar News",
     type: "portal_regional",
     url: "https://radar.news/feed/",
+    defaultCategory: "geral",
   },
   {
     name: "Namidia News",
     type: "portal_regional",
     url: "https://namidia.news/feed/",
+    defaultCategory: "geral",
   },
   {
     name: "Hoje Bahia - Municípios",
     type: "portal_regional",
     url: "https://hojebahia.com.br/feed/19/municipios/",
+    defaultCategory: "geral",
+  },
+  {
+    name: "TSE - Tribunal Superior Eleitoral",
+    type: "oficial",
+    url: "https://www.tse.jus.br/rss",
+    defaultCategory: "politica",
+  },
+  {
+    name: "Agência Sebrae de Notícias - Bahia",
+    type: "oficial",
+    url: "https://ba.agenciasebrae.com.br/feed/",
+    defaultCategory: "negocios",
   },
 ];
 
-const RELIABILITY_THRESHOLD = 70; // matérias abaixo disso não vão para o Redator
+const RELIABILITY_THRESHOLD = 50; // matérias abaixo disso não vão para o Redator
 
 // ----------------------------------------------------------------
 // 2) SCRAPER — coleta e normaliza itens de todos os feeds
 // ----------------------------------------------------------------
+
+// Alguns feeds (como o do TSE) usam o formato RDF/RSS 1.0, que o
+// rss-parser não reconhece nativamente. Esse fallback faz uma extração
+// simples via regex, suficiente para pegar título, link e data de cada
+// <item> do XML, sem precisar de uma lib adicional.
+function parseRdfFeed(xml) {
+  const items = [];
+  const itemBlocks = xml.split("<item ").slice(1);
+
+  for (const block of itemBlocks) {
+    const titleMatch = block.match(/<title>([\s\S]*?)<\/title>/);
+    const linkMatch = block.match(/<link>([\s\S]*?)<\/link>/);
+    const dateMatch = block.match(/<dc:date>([\s\S]*?)<\/dc:date>/);
+    // A descrição costuma vir em múltiplos blocos CDATA; pega o primeiro
+    // como resumo (geralmente é a linha-fina/subtítulo da notícia).
+    const descMatch = block.match(/<!\[CDATA\[\s*<p>([\s\S]*?)<\/p>\s*\]\]>/);
+
+    if (titleMatch && linkMatch) {
+      items.push({
+        title: titleMatch[1].trim(),
+        link: linkMatch[1].trim(),
+        contentSnippet: descMatch ? descMatch[1].replace(/<[^>]+>/g, "").trim() : "",
+        pubDate: dateMatch ? dateMatch[1].trim() : new Date().toISOString(),
+      });
+    }
+  }
+
+  return items;
+}
+
 async function collectFeeds() {
   const allItems = [];
 
   for (const feed of FEEDS) {
     try {
-      const parsed = await parser.parseURL(feed.url);
-      for (const item of parsed.items) {
+      let items;
+      try {
+        const parsed = await parser.parseURL(feed.url);
+        items = parsed.items;
+      } catch (err) {
+        // Se o rss-parser não reconheceu o formato, tenta o fallback RDF
+        // antes de desistir do feed por completo.
+        if (err.message.includes("not recognized as RSS")) {
+          const res = await fetch(feed.url);
+          const xml = await res.text();
+          items = parseRdfFeed(xml);
+        } else {
+          throw err;
+        }
+      }
+
+      for (const item of items) {
         allItems.push({
           sourceName: feed.name,
           sourceType: feed.type,
@@ -66,6 +126,7 @@ async function collectFeeds() {
           excerpt: item.contentSnippet ?? item.content ?? "",
           url: item.link ?? "",
           publishedAt: item.pubDate ?? new Date().toISOString(),
+          defaultCategory: feed.defaultCategory ?? "geral",
         });
       }
     } catch (err) {
@@ -74,6 +135,74 @@ async function collectFeeds() {
   }
 
   return allItems;
+}
+
+// ----------------------------------------------------------------
+// 2.1) FILTROS DE RELEVÂNCIA
+// Aplicados antes do clustering/validação, para não gastar tokens da
+// IA com conteúdo que será descartado de qualquer forma.
+// ----------------------------------------------------------------
+
+// Cidades e localidades do extremo sul da Bahia / Costa do Descobrimento.
+// Adicione outras conforme notar que faltou alguma na sua região.
+const REGION_KEYWORDS = [
+  "porto seguro",
+  "eunápolis",
+  "eunapolis",
+  "trancoso",
+  "arraial d'ajuda",
+  "arraial d ajuda",
+  "caraíva",
+  "caraiva",
+  "santa cruz cabrália",
+  "santa cruz cabralia",
+  "cabrália",
+  "cabralia",
+  "belmonte",
+  "itabela",
+  "itagimirim",
+  "itamaraju",
+  "prado",
+  "guaratinga",
+  "vera cruz",
+  "costa do descobrimento",
+  "extremo sul",
+];
+
+function textMatchesAny(text, keywords) {
+  const normalized = text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, ""); // remove acentos para comparação mais tolerante
+  return keywords.some((kw) => {
+    const normalizedKw = kw.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return normalized.includes(normalizedKw);
+  });
+}
+
+// Filtro só geográfico aqui — decisão sobre política nacional x local x
+// relevante fica a cargo do Redator (julgamento mais sutil, ver prompt
+// de writeArticle), não de uma lista fixa de palavras.
+function isRelevant(item) {
+  const text = `${item.title} ${item.excerpt}`;
+
+  // Fontes hiper-regionais (Radar News, Namidia News) já cobrem só a
+  // região por natureza — não exigimos menção explícita da cidade nelas,
+  // senão perderíamos notícias legítimas que não citam o nome da cidade
+  // no título/resumo. Para fontes mais amplas (Hoje Bahia, Sebrae, TSE),
+  // exigimos menção explícita à região OU deixamos passar para o Redator
+  // decidir no caso de conteúdo nacional com possível relevância (ex:
+  // eleição presidencial) — por isso o TSE não é descartado aqui.
+  if (item.sourceType === "portal_regional" && (item.sourceName === "Radar News" || item.sourceName === "Namidia News")) {
+    return true;
+  }
+
+  if (item.sourceName === "TSE - Tribunal Superior Eleitoral") {
+    // Deixa passar para o Redator avaliar relevância nacional vs. local.
+    return true;
+  }
+
+  return textMatchesAny(text, REGION_KEYWORDS);
 }
 
 // ----------------------------------------------------------------
@@ -108,6 +237,30 @@ function clusterItems(items) {
 }
 
 // ----------------------------------------------------------------
+// 3.1) CHECAGEM DE DUPLICADOS
+// Busca títulos de matérias já salvas (rascunho, publicadas ou
+// rejeitadas) nos últimos dias, para não gerar de novo algo que já
+// existe no banco — útil porque os mesmos itens tendem a continuar
+// aparecendo no RSS por alguns dias após a publicação original.
+// ----------------------------------------------------------------
+const DUPLICATE_CHECK_WINDOW_DAYS = 5;
+const DUPLICATE_SIMILARITY_THRESHOLD = 0.35;
+
+async function getRecentTitles() {
+  const { rows } = await sql.query(
+    `SELECT title FROM articles WHERE created_at > now() - ($1 || ' days')::interval;`,
+    [DUPLICATE_CHECK_WINDOW_DAYS]
+  );
+  return rows.map((r) => r.title);
+}
+
+function isDuplicate(clusterTitle, existingTitles) {
+  return existingTitles.some(
+    (existing) => similarity(clusterTitle, existing) > DUPLICATE_SIMILARITY_THRESHOLD
+  );
+}
+
+// ----------------------------------------------------------------
 // 4) VALIDADOR — LLM como classificador (schema JSON forçado)
 // ----------------------------------------------------------------
 async function validateCluster(cluster) {
@@ -134,6 +287,7 @@ Responda no formato exato:
   const completion = await groq.chat.completions.create({
     model: "llama-3.1-8b-instant",
     temperature: 0.1,
+    response_format: { type: "json_object" },
     messages: [{ role: "user", content: prompt }],
   });
 
@@ -144,7 +298,14 @@ Responda no formato exato:
     parsed = { score: 0, confidence: "baixa", contradictions: [], reasoning: "Falha ao interpretar resposta do classificador." };
   }
 
-  const finalScore = Math.round((ruleScore + parsed.score) / 2);
+  // NOTA DE CALIBRAÇÃO: com poucas fontes cadastradas ainda (fase de teste),
+  // a maioria dos clusters tem só 1 fonte por evento, então o ruleScore fica
+  // sempre baixo (~15) mesmo para notícias legítimas. Por isso, nesta fase,
+  // damos peso maior ao julgamento do LLM (70%) do que à contagem de fontes
+  // (30%). Quando houver mais feeds reais cruzando o mesmo evento regularmente,
+  // ajuste esses pesos para 50/50 — o objetivo final do projeto é que o
+  // cruzamento de múltiplas fontes pese mais, não menos.
+  const finalScore = Math.round(ruleScore * 0.3 + parsed.score * 0.7);
 
   return {
     finalScore,
@@ -159,28 +320,57 @@ Responda no formato exato:
 // ----------------------------------------------------------------
 // 5) REDATOR — gera a matéria no tom do "jornal", com atribuição
 // ----------------------------------------------------------------
+const VALID_CATEGORIES = ["geral", "politica", "negocios", "policia", "cultura", "esporte", "saude", "turismo"];
+
 async function writeArticle(cluster) {
   const sourcesText = cluster
     .map((i) => `- ${i.sourceName} ("${i.title}"): ${i.excerpt}`)
     .join("\n");
 
-  const prompt = `Você é redator de um jornal local digital. Escreva uma matéria jornalística clara, objetiva e bem estruturada com base EXCLUSIVAMENTE nas informações das fontes abaixo. Cite as fontes pelo nome no corpo do texto (ex: "segundo o Diário Oficial..."). Não invente fatos que não estejam nas fontes.
+  // A categoria sugerida pela fonte (ex: feed do TSE -> "politica") serve
+  // como forte indício, mas o LLM decide a categoria final com base no
+  // conteúdo real — uma notícia do feed do Sebrae pode, por exemplo, ser
+  // mais sobre "turismo" do que "negocios" dependendo do assunto.
+  const suggestedCategory = cluster[0]?.defaultCategory ?? "geral";
+
+  const prompt = `Você é redator de um jornal local digital focado no extremo sul da Bahia (Porto Seguro, Eunápolis, Trancoso, Arraial d'Ajuda, Costa do Descobrimento e região). Escreva uma matéria jornalística clara, objetiva e bem estruturada com base EXCLUSIVAMENTE nas informações das fontes abaixo. Cite as fontes pelo nome no corpo do texto (ex: "segundo o Diário Oficial..."). Não invente fatos que não estejam nas fontes.
+
+CRITÉRIO EDITORIAL SOBRE POLÍTICA: este jornal publica política e eleições, mas com um filtro de relevância:
+- Política/gestão LOCAL (prefeito, câmara de vereadores, decisões administrativas da região) -> SEMPRE relevante, pode escrever.
+- Eleições/política NACIONAL ou ESTADUAL (presidência, governo do estado, TSE, partidos em Brasília) -> só é relevante se tiver IMPACTO DIRETO E CONCRETO no dia a dia do leitor local (ex: nova lei eleitoral que muda prazo de votação, decisão do TSE que afeta todos os eleitores). Bastidores partidários, disputas internas de partido, fofoca política, ou burocracia administrativa interna (sistemas internos do TSE, prestação de contas de partidos, recesso forense) NÃO são relevantes para esse jornal.
+- Se as fontes forem sobre política nacional SEM relevância direta para o leitor local, responda apenas com {"skip": true} e nada mais.
 
 Fontes:
 ${sourcesText}
 
+Categoria sugerida pela origem das fontes: "${suggestedCategory}" (use como indício, mas escolha a categoria que melhor descreve o CONTEÚDO real da matéria).
+
+Categorias válidas: ${VALID_CATEGORIES.join(", ")}.
+
 Responda SOMENTE com um JSON válido no formato:
-{"title": "<título da matéria>", "lead": "<linha de resumo, 1-2 frases>", "body": "<corpo completo da matéria, 3-5 parágrafos>"}`;
+{"title": "<título da matéria>", "lead": "<linha de resumo, 1-2 frases>", "body": "<corpo completo da matéria, 3-5 parágrafos>", "category": "<uma das categorias válidas>"}`;
 
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
     temperature: 0.4,
+    response_format: { type: "json_object" },
     messages: [{ role: "user", content: prompt }],
   });
 
+  const rawContent = completion.choices[0].message.content;
+
   try {
-    return JSON.parse(completion.choices[0].message.content);
-  } catch {
+    const parsed = JSON.parse(rawContent);
+    if (parsed.skip) {
+      return null;
+    }
+    if (!VALID_CATEGORIES.includes(parsed.category)) {
+      parsed.category = suggestedCategory;
+    }
+    return parsed;
+  } catch (err) {
+    console.warn("   ⚠️  Falha ao interpretar JSON do Redator. Resposta crua:");
+    console.warn("   ", rawContent?.slice(0, 300));
     return null;
   }
 }
@@ -192,8 +382,8 @@ async function saveDraft(cluster, validation, article) {
   const clusterId = `cluster-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
   const { rows } = await sql`
-    INSERT INTO articles (cluster_id, title, lead, body, reliability_score, status)
-    VALUES (${clusterId}, ${article.title}, ${article.lead}, ${article.body}, ${validation.finalScore}, 'pending_review')
+    INSERT INTO articles (cluster_id, title, lead, body, category, reliability_score, status)
+    VALUES (${clusterId}, ${article.title}, ${article.lead}, ${article.body}, ${article.category ?? "geral"}, ${validation.finalScore}, 'pending_review')
     RETURNING id;
   `;
   const articleId = rows[0].id;
@@ -216,17 +406,52 @@ async function saveDraft(cluster, validation, article) {
 // ----------------------------------------------------------------
 // MAIN — orquestra o pipeline completo
 // ----------------------------------------------------------------
+
+// Limita quantos clusters tentam ser redigidos por execução, para não
+// estourar o limite diário de tokens do plano gratuito da Groq quando
+// há muitos itens novos de uma vez (ex: testes manuais repetidos no
+// mesmo dia). Em uso normal (2x/dia via GitHub Actions), o volume real
+// de itens novos por execução tende a ser bem menor que isso.
+const MAX_ARTICLES_PER_RUN = 15;
+
+// Pequena pausa entre cada geração, para distribuir as chamadas em vez
+// de disparar tudo em sequência muito rápida.
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function main() {
   console.log("🔍 Coletando feeds...");
   const items = await collectFeeds();
   console.log(`   ${items.length} itens coletados.`);
 
+  console.log("🧭 Filtrando por relevância (região + exclusão de política)...");
+  const relevantItems = items.filter(isRelevant);
+  console.log(`   ${relevantItems.length} de ${items.length} itens são relevantes.`);
+
   console.log("🧩 Agrupando por evento...");
-  const clusters = clusterItems(items);
+  const clusters = clusterItems(relevantItems);
   console.log(`   ${clusters.length} clusters formados.`);
 
+  console.log("🔁 Checando duplicados contra matérias já existentes...");
+  const existingTitles = await getRecentTitles();
+  console.log(`   ${existingTitles.length} matérias recentes no banco para comparação.`);
+
+  let articlesWritten = 0;
+
   for (const cluster of clusters) {
+    if (articlesWritten >= MAX_ARTICLES_PER_RUN) {
+      console.log(`\n⏸️  Limite de ${MAX_ARTICLES_PER_RUN} matérias por execução atingido. Os demais clusters serão processados na próxima execução.`);
+      break;
+    }
+
     console.log(`\n→ Validando cluster: "${cluster[0].title}"`);
+
+    if (isDuplicate(cluster[0].title, existingTitles)) {
+      console.log("   🔁 Já existe matéria parecida no banco — descartado como duplicado.");
+      continue;
+    }
+
     const validation = await validateCluster(cluster);
     console.log(`   Score final: ${validation.finalScore} (regras=${validation.ruleScore}, llm=${validation.llmScore})`);
 
@@ -236,16 +461,31 @@ async function main() {
     }
 
     console.log("   ✍️  Redigindo matéria...");
-    const article = await writeArticle(cluster);
+
+    let article;
+    try {
+      article = await writeArticle(cluster);
+    } catch (err) {
+      if (err.status === 429) {
+        console.log("   ⏸️  Limite diário da Groq atingido. Parando aqui — o restante segue na próxima execução.");
+        break;
+      }
+      throw err;
+    }
+
     if (!article) {
       console.log("   ⚠️  Falha na geração — pulando.");
       continue;
     }
 
     await saveDraft(cluster, validation, article);
+    existingTitles.push(article.title);
+    articlesWritten++;
+
+    await sleep(2000); // pausa de 2s entre matérias para distribuir as chamadas
   }
 
-  console.log("\n🏁 Pipeline concluído.");
+  console.log(`\n🏁 Pipeline concluído. ${articlesWritten} matéria(s) gerada(s) nesta execução.`);
 }
 
 main().catch((err) => {

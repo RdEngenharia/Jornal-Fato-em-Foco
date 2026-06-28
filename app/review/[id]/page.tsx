@@ -4,8 +4,10 @@ import {
   getArticleById,
   getSourcesByArticleId,
   getValidationLogByArticleId,
+  getMediaByArticleId,
 } from "@/lib/db";
 import ReliabilityBadge from "@/components/ReliabilityBadge";
+import MediaGalleryField from "@/components/MediaGalleryField";
 import { publishAction, rejectAction } from "@/app/review/actions";
 
 export const dynamic = "force-dynamic";
@@ -26,9 +28,10 @@ export default async function ReviewPage({
   const article = await getArticleById(id);
   if (!article) notFound();
 
-  const [sources, validation] = await Promise.all([
+  const [sources, validation, media] = await Promise.all([
     getSourcesByArticleId(id),
     getValidationLogByArticleId(id),
+    getMediaByArticleId(id),
   ]);
 
   return (
@@ -51,6 +54,32 @@ export default async function ReviewPage({
                 Rascunho · {article.status === "pending_review" ? "pendente" : article.status}
               </span>
               <ReliabilityBadge score={article.reliability_score} size="lg" />
+            </div>
+
+            <MediaGalleryField
+              initialMedia={media.map((m) => ({
+                type: m.media_type,
+                url: m.url,
+                embedUrl: m.embed_url,
+              }))}
+            />
+
+            <div>
+              <label className="font-sans text-xs text-mute block mb-1">Categoria</label>
+              <select
+                name="category"
+                defaultValue={article.category}
+                className="w-full font-sans text-sm text-ink bg-white border border-ink/10 rounded-md px-4 py-2.5 focus:border-terracotta"
+              >
+                <option value="geral">Geral</option>
+                <option value="politica">Política</option>
+                <option value="negocios">Negócios</option>
+                <option value="policia">Polícia</option>
+                <option value="cultura">Cultura</option>
+                <option value="esporte">Esporte</option>
+                <option value="saude">Saúde</option>
+                <option value="turismo">Turismo</option>
+              </select>
             </div>
 
             <div>

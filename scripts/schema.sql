@@ -19,6 +19,20 @@ CREATE TABLE IF NOT EXISTS articles (
   reviewed_by TEXT
 );
 
+-- Mídia (imagens e vídeos embutidos) associada a cada matéria. Uma matéria
+-- pode ter várias imagens (galeria) e, opcionalmente, um ou mais vídeos
+-- embutidos do YouTube/Instagram. A primeira imagem (menor display_order)
+-- é usada como capa nos cards e na manchete do site público.
+CREATE TABLE IF NOT EXISTS article_media (
+  id SERIAL PRIMARY KEY,
+  article_id INTEGER REFERENCES articles(id) ON DELETE CASCADE,
+  media_type TEXT NOT NULL,                   -- 'image' | 'video_embed'
+  url TEXT NOT NULL,                          -- URL da imagem (/api/image?...) ou URL original do vídeo
+  embed_url TEXT,                             -- para vídeos: URL já transformada para embed (iframe)
+  display_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- Cada matéria pode ter N fontes originais que foram cruzadas
 CREATE TABLE IF NOT EXISTS sources (
   id SERIAL PRIMARY KEY,
@@ -48,3 +62,4 @@ CREATE INDEX IF NOT EXISTS idx_articles_status ON articles(status);
 CREATE INDEX IF NOT EXISTS idx_articles_created_at ON articles(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_sources_article_id ON sources(article_id);
 CREATE INDEX IF NOT EXISTS idx_validation_log_article_id ON validation_log(article_id);
+CREATE INDEX IF NOT EXISTS idx_article_media_article_id ON article_media(article_id);

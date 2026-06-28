@@ -2,16 +2,36 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { publishArticle, rejectArticle } from "@/lib/db";
+import { publishArticle, rejectArticle, getArticleById } from "@/lib/db";
 
 export async function publishAction(formData: FormData) {
   const id = Number(formData.get("id"));
   const title = String(formData.get("title"));
   const lead = String(formData.get("lead"));
   const body = String(formData.get("body"));
+  const category = String(formData.get("category") || "geral");
+  const mediaJsonRaw = formData.get("mediaJson");
 
-  await publishArticle(id, title, lead, body);
+  // Verifica se já estava publicada antes de atualizar, para saber para
+  // onde redirecionar depois (lista de rascunhos vs. lista de publicadas).
+  const existing = await getArticleById(id);
+  const wasAlreadyPublished = existing?.status === "published";
+
+  let media: { type: "image" | "video_embed"; url: string; embedUrl: string | null }[] = [];
+  try {
+    media = mediaJsonRaw ? JSON.parse(String(mediaJsonRaw)) : [];
+  } catch {
+    media = [];
+  }
+
+  await publishArticle(id, title, lead, body, category, media);
   revalidatePath("/");
+  revalidatePath("/noticias");
+  revalidatePath("/published");
+
+  if (wasAlreadyPublished) {
+    redirect("/published?updated=" + id);
+  }
   redirect("/?published=" + id);
 }
 

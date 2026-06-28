@@ -10,12 +10,22 @@ export default async function AdminHome() {
   return (
     <main className="min-h-screen bg-paper px-6 py-10 sm:px-10">
       <header className="mx-auto max-w-3xl mb-10">
-        <p className="font-sans text-xs uppercase tracking-widest text-mute mb-2">
-          Painel editorial
-        </p>
-        <h1 className="font-display text-4xl font-semibold text-ink">
-          Rascunhos para revisão
-        </h1>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-sans text-xs uppercase tracking-widest text-mute mb-2">
+              Painel editorial
+            </p>
+            <h1 className="font-display text-4xl font-semibold text-ink">
+              Rascunhos para revisão
+            </h1>
+          </div>
+          <Link
+            href="/published"
+            className="font-sans text-sm text-mute hover:text-terracotta transition-colors underline"
+          >
+            Ver publicadas →
+          </Link>
+        </div>
         <p className="font-sans text-sm text-mute mt-2">
           {articles.length === 0
             ? "Nenhum rascunho pendente no momento."

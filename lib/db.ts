@@ -14,6 +14,15 @@ export type Article = {
   published_at: string | null;
 };
 
+export type ArticleMedia = {
+  id: number;
+  article_id: number;
+  media_type: "image" | "video_embed";
+  url: string;
+  embed_url: string | null;
+  display_order: number;
+};
+
 export type Source = {
   id: number;
   article_id: number;
@@ -66,22 +75,84 @@ export async function getValidationLogByArticleId(
   return rows[0] ?? null;
 }
 
+export async function getMediaByArticleId(id: number): Promise<ArticleMedia[]> {
+  const { rows } = await sql<ArticleMedia>`
+    SELECT * FROM article_media WHERE article_id = ${id} ORDER BY display_order ASC, id ASC;
+  `;
+  return rows;
+}
+
+// Retorna só a primeira imagem (capa) de uma matéria — usado nos cards
+// e na manchete do site público, onde só uma imagem é exibida.
+export async function getCoverImageByArticleId(id: number): Promise<string | null> {
+  const { rows } = await sql<{ url: string }>`
+    SELECT url FROM article_media
+    WHERE article_id = ${id} AND media_type = 'image'
+    ORDER BY display_order ASC, id ASC
+    LIMIT 1;
+  `;
+  return rows[0]?.url ?? null;
+}
+
+// Busca a capa de várias matérias de uma vez (evita 1 query por card na
+// listagem). Retorna um mapa article_id -> url da primeira imagem.
+export async function getCoverImagesForArticles(
+  articleIds: number[]
+): Promise<Record<number, string>> {
+  if (articleIds.length === 0) return {};
+
+  const { rows } = await sql<{ article_id: number; url: string }>`
+    SELECT DISTINCT ON (article_id) article_id, url
+    FROM article_media
+    WHERE article_id = ANY(${articleIds}) AND media_type = 'image'
+    ORDER BY article_id, display_order ASC, id ASC;
+  `;
+
+  const map: Record<number, string> = {};
+  for (const row of rows) {
+    map[row.article_id] = row.url;
+  }
+  return map;
+}
+
+type MediaInput = {
+  type: "image" | "video_embed";
+  url: string;
+  embedUrl?: string | null;
+};
+
 export async function publishArticle(
   id: number,
   editedTitle: string,
   editedLead: string,
-  editedBody: string
+  editedBody: string,
+  category: string,
+  media: MediaInput[]
 ) {
   await sql`
     UPDATE articles
     SET title = ${editedTitle},
         lead = ${editedLead},
         body = ${editedBody},
+        category = ${category},
         status = 'published',
         reviewed_at = now(),
         published_at = now()
     WHERE id = ${id};
   `;
+
+  // Substitui a mídia existente pela lista atual enviada no formulário,
+  // simples de implementar e correto para o volume desse projeto.
+  await sql`DELETE FROM article_media WHERE article_id = ${id};`;
+
+  let order = 0;
+  for (const item of media) {
+    await sql`
+      INSERT INTO article_media (article_id, media_type, url, embed_url, display_order)
+      VALUES (${id}, ${item.type}, ${item.url}, ${item.embedUrl ?? null}, ${order});
+    `;
+    order++;
+  }
 }
 
 export async function rejectArticle(id: number) {
@@ -92,11 +163,45 @@ export async function rejectArticle(id: number) {
   `;
 }
 
-export async function getPublishedArticles(): Promise<Article[]> {
+export async function getPublishedArticles(category?: string): Promise<Article[]> {
+  if (category && category !== "todas") {
+    const { rows } = await sql<Article>`
+      SELECT * FROM articles
+      WHERE status = 'published' AND category = ${category}
+      ORDER BY published_at DESC;
+    `;
+    return rows;
+  }
+
   const { rows } = await sql<Article>`
     SELECT * FROM articles
     WHERE status = 'published'
     ORDER BY published_at DESC;
   `;
   return rows;
+}
+
+export async function getPublishedArticleById(id: number): Promise<Article | null> {
+  const { rows } = await sql<Article>`
+    SELECT * FROM articles WHERE id = ${id} AND status = 'published';
+  `;
+  return rows[0] ?? null;
+}
+
+// Remove a matéria do site público sem apagar do banco (fica arquivada,
+// pode ser consultada depois se necessário).
+export async function unpublishArticle(id: number) {
+  await sql`
+    UPDATE articles
+    SET status = 'archived'
+    WHERE id = ${id};
+  `;
+}
+
+// Busca uma matéria publicada para fins de edição no painel admin
+// (diferente de getPublishedArticleById, que é usada no site público e
+// só retorna se status = 'published' — aqui queremos buscar mesmo que
+// o status já tenha mudado).
+export async function getArticleForAdmin(id: number): Promise<Article | null> {
+  return getArticleById(id);
 }
