@@ -45,6 +45,8 @@ export default async function ArticlePage({
   params: { id: string };
 }) {
   const id = Number(params.id);
+  console.log(`[DEBUG materia] params.id bruto:`, JSON.stringify(params.id), typeof params.id);
+  console.log(`[DEBUG materia] id convertido:`, id, typeof id, "isNaN:", Number.isNaN(id));
   const article = await getPublishedArticleById(id);
   if (!article) notFound();
 
