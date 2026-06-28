@@ -9,6 +9,7 @@ import {
 import { checkPlagiarism } from "@/lib/plagiarism-check";
 import ReliabilityBadge from "@/components/ReliabilityBadge";
 import MediaGalleryField from "@/components/MediaGalleryField";
+import CategorySelectField from "@/components/CategorySelectField";
 import { publishAction, rejectAction } from "@/app/admin/review/actions";
 
 export const dynamic = "force-dynamic";
@@ -77,23 +78,7 @@ export default async function ReviewPage({
               }))}
             />
 
-            <div>
-              <label className="font-sans text-xs text-mute block mb-1">Categoria</label>
-              <select
-                name="category"
-                defaultValue={article.category}
-                className="w-full font-sans text-sm text-ink bg-white border border-ink/10 rounded-md px-4 py-2.5 focus:border-terracotta"
-              >
-                <option value="geral">Geral</option>
-                <option value="politica">Política</option>
-                <option value="negocios">Negócios</option>
-                <option value="policia">Polícia</option>
-                <option value="cultura">Cultura</option>
-                <option value="esporte">Esporte</option>
-                <option value="saude">Saúde</option>
-                <option value="turismo">Turismo</option>
-              </select>
-            </div>
+            <CategorySelectField defaultValue={article.category} />
 
             <div>
               <label className="font-sans text-xs text-mute block mb-1">Título</label>
