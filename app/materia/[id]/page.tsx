@@ -49,9 +49,12 @@ export default async function ArticlePage({
   if (!article) notFound();
 
   const media = await getMediaByArticleId(id);
+  console.log(`[DEBUG materia/${id}] media bruta do banco:`, JSON.stringify(media));
   const images = media.filter((m) => m.media_type === "image");
+  console.log(`[DEBUG materia/${id}] images filtradas:`, JSON.stringify(images));
   const videos = media.filter((m) => m.media_type === "video_embed");
   const [coverImage, ...restImages] = images;
+  console.log(`[DEBUG materia/${id}] coverImage:`, JSON.stringify(coverImage));
 
   const bodyBlocks = parseBodyWithImages(article.body);
   const usedImageIndexes = new Set(
