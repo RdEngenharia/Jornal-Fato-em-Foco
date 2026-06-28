@@ -12,10 +12,43 @@ const SLOTS = [
   { id: "ad-article-footer", label: "Rodapé da matéria" },
 ];
 
+const PLANS = {
+  destaque: {
+    label: "Destaque (home)",
+    description: "Maior visibilidade — aparece para todo visitante que abre o site.",
+    slots: ["ad-home-top", "ad-home-sidebar-left", "ad-home-sidebar-right", "ad-home-footer"],
+  },
+  padrao: {
+    label: "Padrão (matérias)",
+    description: "Aparece dentro das matérias — visibilidade mais segmentada, custo menor.",
+    slots: ["ad-in-article", "ad-article-footer"],
+  },
+  personalizado: {
+    label: "Personalizado",
+    description: "Escolha manualmente quais posições exibem este anúncio.",
+    slots: [] as string[],
+  },
+} as const;
+
+type PlanKey = keyof typeof PLANS;
+
 export default function NewAdForm() {
   const [imageUrl, setImageUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [plan, setPlan] = useState<PlanKey>("destaque");
+  const [selectedSlots, setSelectedSlots] = useState<string[]>(PLANS.destaque.slots as unknown as string[]);
+
+  function handlePlanChange(newPlan: PlanKey) {
+    setPlan(newPlan);
+    setSelectedSlots([...PLANS[newPlan].slots]);
+  }
+
+  function toggleSlot(slotId: string) {
+    setSelectedSlots((prev) =>
+      prev.includes(slotId) ? prev.filter((s) => s !== slotId) : [...prev, slotId]
+    );
+  }
 
   async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -43,6 +76,27 @@ export default function NewAdForm() {
       <h3 className="font-display text-lg font-semibold text-ink">Novo anúncio</h3>
 
       <input type="hidden" name="imageUrl" value={imageUrl} />
+
+      <div>
+        <label className="font-sans text-xs text-mute block mb-2">Tipo de anúncio</label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {(Object.keys(PLANS) as PlanKey[]).map((key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => handlePlanChange(key)}
+              className={`text-left rounded-md border p-3 transition-colors ${
+                plan === key
+                  ? "border-terracotta bg-terracotta/5"
+                  : "border-ink/10 hover:border-ink/20"
+              }`}
+            >
+              <p className="font-sans text-sm font-semibold text-ink">{PLANS[key].label}</p>
+              <p className="font-sans text-[11px] text-mute mt-0.5">{PLANS[key].description}</p>
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div>
         <label className="font-sans text-xs text-mute block mb-1">Nome do anunciante</label>
@@ -134,7 +188,7 @@ export default function NewAdForm() {
 
       <div>
         <label className="font-sans text-xs text-mute block mb-2">
-          Onde exibir (selecione um ou mais)
+          Posições selecionadas ({selectedSlots.length})
         </label>
         <div className="space-y-1.5">
           {SLOTS.map((slot) => (
@@ -142,17 +196,23 @@ export default function NewAdForm() {
               <input
                 type="checkbox"
                 name={`slot_${slot.id}`}
+                checked={selectedSlots.includes(slot.id)}
+                onChange={() => toggleSlot(slot.id)}
                 className="rounded border-ink/20 text-terracotta focus:ring-terracotta"
               />
               <span className="font-sans text-sm text-ink">{slot.label}</span>
             </label>
           ))}
         </div>
+        <p className="font-sans text-[11px] text-mute/70 mt-1.5">
+          Os planos já vêm com posições sugeridas, mas você pode ajustar
+          manualmente marcando ou desmarcando antes de criar.
+        </p>
       </div>
 
       <button
         type="submit"
-        disabled={!imageUrl || uploading}
+        disabled={!imageUrl || uploading || selectedSlots.length === 0}
         className="rounded-md bg-terracotta px-5 py-2.5 font-sans text-sm font-medium text-white hover:bg-terracotta-dark transition-colors disabled:opacity-40"
       >
         Criar anúncio
