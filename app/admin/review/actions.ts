@@ -25,19 +25,19 @@ export async function publishAction(formData: FormData) {
   }
 
   await publishArticle(id, title, lead, body, category, media);
-  revalidatePath("/");
-  revalidatePath("/noticias");
-  revalidatePath("/published");
+  revalidatePath("/"); // home pública, onde as matérias aparecem
+  revalidatePath("/admin");
+  revalidatePath("/admin/published");
 
   if (wasAlreadyPublished) {
-    redirect("/published?updated=" + id);
+    redirect("/admin/published?updated=" + id);
   }
-  redirect("/?published=" + id);
+  redirect("/admin?published=" + id);
 }
 
 export async function rejectAction(formData: FormData) {
   const id = Number(formData.get("id"));
   await rejectArticle(id);
-  revalidatePath("/");
-  redirect("/?rejected=" + id);
+  revalidatePath("/admin");
+  redirect("/admin?rejected=" + id);
 }

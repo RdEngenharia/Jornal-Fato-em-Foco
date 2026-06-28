@@ -7,7 +7,7 @@ import { unpublishArticle } from "@/lib/db";
 export async function unpublishAction(formData: FormData) {
   const id = Number(formData.get("id"));
   await unpublishArticle(id);
-  revalidatePath("/published");
-  revalidatePath("/noticias");
-  redirect("/published?removed=" + id);
+  revalidatePath("/admin/published");
+  revalidatePath("/");
+  redirect("/admin/published?removed=" + id);
 }

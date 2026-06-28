@@ -27,7 +27,7 @@ function LoginForm() {
         throw new Error(data.error ?? "Falha no login.");
       }
 
-      const destination = searchParams.get("from") ?? "/";
+      const destination = searchParams.get("from") ?? "/admin";
       router.push(destination);
       router.refresh();
     } catch (err) {

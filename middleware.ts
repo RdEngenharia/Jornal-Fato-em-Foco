@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Rotas protegidas: o painel admin inteiro, exceto o site público (/noticias)
-// e os endpoints de API que o próprio painel usa internamente (upload,
-// imagem, video-embed) — esses são acessados via fetch do navegador já
-// autenticado, então não precisam de checagem própria aqui.
-const PROTECTED_PREFIXES = ["/", "/review", "/published"];
-const PUBLIC_PATHS = ["/noticias", "/login", "/api"];
+// Rotas protegidas: agora só o painel admin, em /admin. A raiz (/) e
+// /materia/* são o site público, sempre livres. /login e /api ficam
+// fora da checagem para não criar loop de redirecionamento.
+const PROTECTED_PREFIXES = ["/admin"];
+const PUBLIC_PATHS = ["/login", "/api"];
 
 const AUTH_COOKIE_NAME = "admin_session";
 

@@ -30,7 +30,7 @@ export default async function ArticlePage({
     <main className="min-h-screen bg-paper">
       <header className="border-b border-ink/10 px-6 py-6 sm:px-10">
         <div className="mx-auto max-w-3xl flex items-center justify-between">
-          <Link href="/noticias">
+          <Link href="/">
             <h1 className="font-display text-2xl font-bold text-ink tracking-tight">
               Fato em Foco
             </h1>
@@ -43,7 +43,7 @@ export default async function ArticlePage({
 
       <article className="mx-auto max-w-3xl px-6 py-12 sm:px-10">
         <Link
-          href="/noticias"
+          href="/"
           className="font-sans text-sm text-mute hover:text-terracotta transition-colors"
         >
           ← Todas as notícias

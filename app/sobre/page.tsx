@@ -7,7 +7,7 @@ export default function SobrePage() {
     <main className="min-h-screen bg-paper">
       <header className="sticky top-0 z-10 bg-paper/95 backdrop-blur-sm border-b border-ink/10 px-5 py-4 sm:px-10">
         <div className="mx-auto max-w-3xl flex items-center justify-between">
-          <Link href="/noticias" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <span className="inline-block w-2.5 h-2.5 rounded-full bg-terracotta" />
             <h1 className="font-display text-2xl font-extrabold text-ink tracking-tight">
               Fato em Foco
@@ -21,7 +21,7 @@ export default function SobrePage() {
 
       <article className="mx-auto max-w-3xl px-6 py-12 sm:px-10">
         <Link
-          href="/noticias"
+          href="/"
           className="font-sans text-sm text-mute hover:text-terracotta transition-colors"
         >
           ← Voltar para as notícias

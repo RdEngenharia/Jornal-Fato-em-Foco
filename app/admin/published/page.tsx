@@ -21,7 +21,7 @@ export default async function PublishedAdminPage() {
             </h1>
           </div>
           <Link
-            href="/"
+            href="/admin"
             className="font-sans text-sm text-mute hover:text-terracotta transition-colors underline"
           >
             ← Rascunhos
@@ -57,7 +57,7 @@ export default async function PublishedAdminPage() {
             <div className="flex items-center gap-3 shrink-0">
               <ReliabilityBadge score={article.reliability_score} />
               <Link
-                href={`/review/${article.id}`}
+                href={`/admin/review/${article.id}`}
                 className="font-sans text-sm text-ink border border-ink/15 rounded-md px-3 py-1.5 hover:bg-ink/5 transition-colors"
               >
                 Editar

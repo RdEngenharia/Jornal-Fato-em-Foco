@@ -18,7 +18,7 @@ export default function CategoryTabs({ active }: { active: string }) {
       <div className="mx-auto max-w-6xl flex gap-1 min-w-max">
         {CATEGORIES.map((cat) => {
           const isActive = active === cat.value;
-          const href = cat.value === "todas" ? "/noticias" : `/noticias?categoria=${cat.value}`;
+          const href = cat.value === "todas" ? "/" : `/?categoria=${cat.value}`;
           return (
             <Link
               key={cat.value}

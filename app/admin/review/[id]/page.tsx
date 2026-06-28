@@ -8,7 +8,7 @@ import {
 } from "@/lib/db";
 import ReliabilityBadge from "@/components/ReliabilityBadge";
 import MediaGalleryField from "@/components/MediaGalleryField";
-import { publishAction, rejectAction } from "@/app/review/actions";
+import { publishAction, rejectAction } from "@/app/admin/review/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +38,7 @@ export default async function ReviewPage({
     <main className="min-h-screen bg-paper px-6 py-10 sm:px-10">
       <div className="mx-auto max-w-5xl">
         <Link
-          href="/"
+          href="/admin"
           className="font-sans text-sm text-mute hover:text-terracotta transition-colors"
         >
           ← Voltar para a lista
