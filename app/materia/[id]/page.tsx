@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublishedArticleById, getMediaByArticleId } from "@/lib/db";
+import AdSlot from "@/components/AdSlot";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,32 @@ function formatDate(dateStr: string) {
     month: "long",
     year: "numeric",
   });
+}
+
+// Divide o corpo da matéria em blocos de texto e marcadores de imagem
+// ([IMAGEM:N]), na ordem em que aparecem, para renderizar cada um no
+// ponto exato escolhido na revisão. N é 1-based (1 = capa).
+type BodyBlock =
+  | { type: "text"; content: string }
+  | { type: "image"; index: number };
+
+function parseBodyWithImages(body: string): BodyBlock[] {
+  const blocks: BodyBlock[] = [];
+  const regex = /\[IMAGEM:(\d+)\]/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(body)) !== null) {
+    const textBefore = body.slice(lastIndex, match.index).trim();
+    if (textBefore) blocks.push({ type: "text", content: textBefore });
+    blocks.push({ type: "image", index: Number(match[1]) });
+    lastIndex = regex.lastIndex;
+  }
+
+  const remaining = body.slice(lastIndex).trim();
+  if (remaining) blocks.push({ type: "text", content: remaining });
+
+  return blocks;
 }
 
 export default async function ArticlePage({
@@ -25,6 +52,14 @@ export default async function ArticlePage({
   const images = media.filter((m) => m.media_type === "image");
   const videos = media.filter((m) => m.media_type === "video_embed");
   const [coverImage, ...restImages] = images;
+
+  const bodyBlocks = parseBodyWithImages(article.body);
+  const usedImageIndexes = new Set(
+    bodyBlocks.filter((b) => b.type === "image").map((b) => (b as { index: number }).index)
+  );
+  // Imagens que sobraram (não usadas via marcador no texto) ainda aparecem
+  // na grade do final, como já funcionava antes.
+  const leftoverImages = restImages.filter((_, i) => !usedImageIndexes.has(i + 2));
 
   return (
     <main className="min-h-screen bg-paper">
@@ -72,13 +107,32 @@ export default async function ArticlePage({
           </p>
         )}
 
-        <div className="font-sans text-base text-ink leading-relaxed whitespace-pre-line space-y-4">
-          {article.body}
+        <div className="font-sans text-base text-ink leading-relaxed space-y-4">
+          {bodyBlocks.map((block, i) => {
+            if (block.type === "text") {
+              return (
+                <p key={i} className="whitespace-pre-line">
+                  {block.content}
+                </p>
+              );
+            }
+            // block.type === "image" — busca a imagem pela posição (1-based)
+            const img = images[block.index - 1];
+            if (!img) return null;
+            return (
+              <img
+                key={i}
+                src={img.url}
+                alt={article.title}
+                className="w-full aspect-[16/9] object-cover rounded-xl my-6"
+              />
+            );
+          })}
         </div>
 
-        {restImages.length > 0 && (
+        {leftoverImages.length > 0 && (
           <div className="grid grid-cols-2 gap-3 mt-8">
-            {restImages.map((img) => (
+            {leftoverImages.map((img) => (
               <img
                 key={img.id}
                 src={img.url}
@@ -103,20 +157,28 @@ export default async function ArticlePage({
             ))}
           </div>
         )}
+
+        {/* Espaço reservado para anúncio dentro da matéria (in-article). */}
+        <div className="my-8">
+          <AdSlot id="ad-in-article" />
+        </div>
       </article>
 
       <footer className="border-t border-ink/10 px-6 py-8 sm:px-10">
-        <div className="mx-auto max-w-3xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <p className="font-sans text-xs text-mute">
-            Fato em Foco — conteúdo apurado a partir de fontes públicas e
-            portais regionais, com revisão editorial antes da publicação.
-          </p>
-          <Link
-            href="/sobre"
-            className="font-sans text-xs text-mute hover:text-terracotta transition-colors underline shrink-0"
-          >
-            Sobre o jornal
-          </Link>
+        <div className="mx-auto max-w-3xl">
+          <AdSlot id="ad-article-footer" minHeight="90px" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6">
+            <p className="font-sans text-xs text-mute">
+              Fato em Foco — conteúdo apurado a partir de fontes públicas e
+              portais regionais, com revisão editorial antes da publicação.
+            </p>
+            <Link
+              href="/sobre"
+              className="font-sans text-xs text-mute hover:text-terracotta transition-colors underline shrink-0"
+            >
+              Sobre o jornal
+            </Link>
+          </div>
         </div>
       </footer>
     </main>

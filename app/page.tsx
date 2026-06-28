@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getPublishedArticles, getCoverImagesForArticles } from "@/lib/db";
 import CategoryTabs from "@/components/CategoryTabs";
+import AdSlot from "@/components/AdSlot";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +68,10 @@ export default async function PublicHome({
       </header>
 
       <CategoryTabs active={activeCategory} />
+
+      <div className="mx-auto max-w-6xl px-5 pt-5">
+        <AdSlot id="ad-home-top" minHeight="90px" />
+      </div>
 
       <div className="mx-auto max-w-6xl px-5 py-8 sm:px-10">
         {articles.length === 0 && (
@@ -166,17 +171,20 @@ export default async function PublicHome({
       </div>
 
       <footer className="border-t border-ink/10 px-5 py-8 sm:px-10 mt-10">
-        <div className="mx-auto max-w-6xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <p className="font-sans text-xs text-mute">
-            Fato em Foco — conteúdo apurado a partir de fontes públicas e
-            portais regionais, com revisão editorial antes da publicação.
-          </p>
-          <Link
-            href="/sobre"
-            className="font-sans text-xs text-mute hover:text-terracotta transition-colors underline shrink-0"
-          >
-            Sobre o jornal
-          </Link>
+        <div className="mx-auto max-w-6xl">
+          <AdSlot id="ad-home-footer" minHeight="90px" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6">
+            <p className="font-sans text-xs text-mute">
+              Fato em Foco — conteúdo apurado a partir de fontes públicas e
+              portais regionais, com revisão editorial antes da publicação.
+            </p>
+            <Link
+              href="/sobre"
+              className="font-sans text-xs text-mute hover:text-terracotta transition-colors underline shrink-0"
+            >
+              Sobre o jornal
+            </Link>
+          </div>
         </div>
       </footer>
     </main>
