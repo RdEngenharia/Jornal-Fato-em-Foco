@@ -4,6 +4,8 @@ import { getPublishedArticleById, getMediaByArticleId } from "@/lib/db";
 import AdSlot from "@/components/AdSlot";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("pt-BR", {
@@ -50,8 +52,14 @@ export default async function ArticlePage({
   const article = await getPublishedArticleById(id);
   if (!article) notFound();
 
+  // TESTE TEMPORÁRIO: query SQL direta, sem passar pela função de lib/db.ts,
+  // para isolar se o problema está na função em si ou em outro lugar.
+  const { sql } = await import("@vercel/postgres");
+  const directResult = await sql`SELECT * FROM article_media WHERE article_id = ${id} ORDER BY display_order ASC;`;
+  console.log(`[DEBUG materia] query DIRETA na página:`, JSON.stringify(directResult.rows));
+
   const media = await getMediaByArticleId(id);
-  console.log(`[DEBUG materia/${id}] media bruta do banco:`, JSON.stringify(media));
+  console.log(`[DEBUG materia/${id}] media bruta do banco (via lib/db.ts):`, JSON.stringify(media));
   const images = media.filter((m) => m.media_type === "image");
   console.log(`[DEBUG materia/${id}] images filtradas:`, JSON.stringify(images));
   const videos = media.filter((m) => m.media_type === "video_embed");
