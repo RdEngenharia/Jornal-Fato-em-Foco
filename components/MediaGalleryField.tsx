@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { applyWatermark, applyBlur } from "@/lib/image-processing";
 
 export type MediaItem = {
   type: "image" | "video_embed";
   url: string;
   embedUrl?: string | null;
   previewUrl?: string; // usado só para preview local antes do upload terminar
+  isBlurred?: boolean; // marca se essa imagem já foi desfocada
 };
 
 type Props = {
@@ -20,6 +22,8 @@ export default function MediaGalleryField({ initialMedia = [] }: Props) {
   const [videoStatus, setVideoStatus] = useState<"idle" | "checking" | "error">("idle");
   const [videoError, setVideoError] = useState<string | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [watermarkEnabled, setWatermarkEnabled] = useState(true);
+  const [processingIndex, setProcessingIndex] = useState<number | null>(null);
 
   async function handleCopyMarker(imagePosition: number) {
     const marker = `[IMAGEM:${imagePosition}]`;
@@ -40,7 +44,18 @@ export default function MediaGalleryField({ initialMedia = [] }: Props) {
 
     setUploadingCount((c) => c + files.length);
 
-    for (const file of files) {
+    for (let file of files) {
+      // Aplica a marca d'água ANTES do upload, se habilitada — assim a
+      // imagem já sobe para o servidor com a marca, sem etapa extra.
+      if (watermarkEnabled) {
+        try {
+          file = await applyWatermark(file);
+        } catch {
+          // Se o processamento falhar por qualquer motivo, segue com o
+          // arquivo original em vez de bloquear o upload inteiro.
+        }
+      }
+
       const localPreview = URL.createObjectURL(file);
       // Adiciona um placeholder imediatamente para feedback visual rápido.
       setItems((prev) => [...prev, { type: "image", url: "", previewUrl: localPreview }]);
@@ -73,6 +88,39 @@ export default function MediaGalleryField({ initialMedia = [] }: Props) {
 
   function handleRemove(index: number) {
     setItems((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  async function handleBlurImage(index: number) {
+    const item = items[index];
+    if (!item.url) return;
+
+    setProcessingIndex(index);
+    try {
+      // Busca o arquivo atual (já no Blob Storage) para reprocessar.
+      const sourceUrl = item.previewUrl ?? item.url;
+      const res = await fetch(sourceUrl);
+      const blob = await res.blob();
+      const file = new File([blob], "image", { type: blob.type || "image/jpeg" });
+
+      const blurredFile = await applyBlur(file);
+      const newPreview = URL.createObjectURL(blurredFile);
+
+      const formData = new FormData();
+      formData.append("file", blurredFile);
+      const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await uploadRes.json();
+      if (!uploadRes.ok) throw new Error(data.error ?? "Falha no upload.");
+
+      setItems((prev) =>
+        prev.map((it, i) =>
+          i === index ? { ...it, url: data.url, previewUrl: newPreview, isBlurred: true } : it
+        )
+      );
+    } catch {
+      // Se falhar, mantém a imagem original sem alteração.
+    } finally {
+      setProcessingIndex(null);
+    }
   }
 
   function moveItem(index: number, direction: -1 | 1) {
@@ -118,9 +166,20 @@ export default function MediaGalleryField({ initialMedia = [] }: Props) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="font-sans text-xs text-mute block mb-2">
-          Galeria de imagens {images.length > 0 && `(${images.length})`}
-        </label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="font-sans text-xs text-mute">
+            Galeria de imagens {images.length > 0 && `(${images.length})`}
+          </label>
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={watermarkEnabled}
+              onChange={(e) => setWatermarkEnabled(e.target.checked)}
+              className="rounded border-ink/20 text-terracotta focus:ring-terracotta"
+            />
+            <span className="font-sans text-xs text-mute">Marca d&apos;água ao enviar</span>
+          </label>
+        </div>
 
         {items.length > 0 && (
           <div className="grid grid-cols-3 gap-2 mb-2">
@@ -152,6 +211,11 @@ export default function MediaGalleryField({ initialMedia = [] }: Props) {
                       <span className="font-sans text-[10px] text-white">Enviando...</span>
                     </div>
                   )}
+                  {processingIndex === index && (
+                    <div className="absolute inset-0 bg-ink/60 flex items-center justify-center">
+                      <span className="font-sans text-[10px] text-white">Desfocando...</span>
+                    </div>
+                  )}
                   <div className="absolute top-1 right-1 flex gap-1">
                     {index > 0 && (
                       <button
@@ -163,6 +227,17 @@ export default function MediaGalleryField({ initialMedia = [] }: Props) {
                         ←
                       </button>
                     )}
+                    {item.type === "image" && item.url && (
+                      <button
+                        type="button"
+                        onClick={() => handleBlurImage(index)}
+                        disabled={processingIndex !== null}
+                        title="Desfocar imagem (para cenas sensíveis)"
+                        className="bg-ink/80 text-white text-[10px] w-5 h-5 rounded flex items-center justify-center hover:bg-terracotta disabled:opacity-40"
+                      >
+                        ◐
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => handleRemove(index)}
@@ -172,6 +247,11 @@ export default function MediaGalleryField({ initialMedia = [] }: Props) {
                       ✕
                     </button>
                   </div>
+                  {item.isBlurred && (
+                    <span className="absolute top-1 left-1 bg-ink/80 text-white text-[9px] font-sans px-1.5 py-0.5 rounded">
+                      Desfocada
+                    </span>
+                  )}
                   {index === 0 && item.type === "image" && (
                     <span className="absolute bottom-1 left-1 bg-terracotta text-white text-[9px] font-sans px-1.5 py-0.5 rounded">
                       Capa
