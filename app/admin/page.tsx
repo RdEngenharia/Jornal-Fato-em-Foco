@@ -27,6 +27,14 @@ export default async function AdminHome() {
             Ver publicadas →
           </Link>
         </div>
+        <div className="flex justify-end mt-1">
+          <Link
+            href="/admin/anuncios"
+            className="font-sans text-xs text-mute hover:text-terracotta transition-colors underline"
+          >
+            Gerenciar anúncios
+          </Link>
+        </div>
         <p className="font-sans text-sm text-mute mt-2">
           {articles.length === 0
             ? "Nenhum rascunho pendente no momento."

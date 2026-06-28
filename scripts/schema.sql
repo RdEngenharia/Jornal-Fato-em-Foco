@@ -65,3 +65,20 @@ CREATE INDEX IF NOT EXISTS idx_articles_created_at ON articles(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_sources_article_id ON sources(article_id);
 CREATE INDEX IF NOT EXISTS idx_validation_log_article_id ON validation_log(article_id);
 CREATE INDEX IF NOT EXISTS idx_article_media_article_id ON article_media(article_id);
+
+-- Anúncios vendidos diretamente para empresas (não-automático, diferente
+-- de redes como Google AdSense). Cada anúncio ocupa um ou mais "slots"
+-- (posições) do site, definidos pelo campo slot_ids.
+CREATE TABLE IF NOT EXISTS advertisements (
+  id SERIAL PRIMARY KEY,
+  advertiser_name TEXT NOT NULL,         -- nome da empresa anunciante
+  image_url TEXT NOT NULL,                -- imagem do anúncio (Vercel Blob)
+  link_url TEXT NOT NULL,                 -- para onde o clique leva (site, WhatsApp, etc.)
+  slot_ids TEXT[] NOT NULL,               -- quais posições do site exibem este anúncio, ex: ['ad-home-top', 'ad-article-footer']
+  active BOOLEAN NOT NULL DEFAULT true,
+  starts_at TIMESTAMPTZ,                  -- início do período pago (opcional)
+  ends_at TIMESTAMPTZ,                    -- fim do período pago (opcional) — passado isso, para de exibir
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_advertisements_active ON advertisements(active);

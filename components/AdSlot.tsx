@@ -1,12 +1,8 @@
-// Espaço reservado para publicidade. Hoje mostra só um placeholder
-// discreto; quando você tiver o código de uma rede de anúncios (Google
-// AdSense, etc), cole o <script>/<ins> fornecido por ela dentro da div
-// abaixo, no lugar do comentário {/* Publicidade */}.
-//
-// Para o Google AdSense especificamente: depois de aprovado, o código
-// de "Auto Ads" vai no <head> (ver app/layout.tsx) e os "ad units"
-// manuais (se quiser controlar posições específicas) substituem estes
-// placeholders.
+// Espaço de publicidade. Busca automaticamente um anúncio vendido
+// diretamente (cadastrado em /admin/anuncios) para este slot — se não
+// houver nenhum ativo, mostra um placeholder discreto no lugar.
+import Link from "next/link";
+import { getActiveAdForSlot } from "@/lib/db";
 
 type AdSlotProps = {
   id: string;
@@ -14,7 +10,30 @@ type AdSlotProps = {
   minHeight?: string;
 };
 
-export default function AdSlot({ id, label = "Publicidade", minHeight = "100px" }: AdSlotProps) {
+export default async function AdSlot({ id, label = "Publicidade", minHeight = "100px" }: AdSlotProps) {
+  const ad = await getActiveAdForSlot(id);
+
+  if (ad) {
+    return (
+      <Link
+        href={ad.link_url}
+        target="_blank"
+        rel="noopener noreferrer sponsored"
+        className="block relative rounded-lg overflow-hidden border border-ink/10"
+        style={{ minHeight }}
+      >
+        <img
+          src={ad.image_url}
+          alt={ad.advertiser_name}
+          className="w-full h-full object-cover"
+        />
+        <span className="absolute top-1.5 right-1.5 bg-ink/70 text-white text-[9px] font-sans px-1.5 py-0.5 rounded uppercase tracking-wide">
+          Publicidade
+        </span>
+      </Link>
+    );
+  }
+
   return (
     <div
       id={id}
@@ -23,7 +42,6 @@ export default function AdSlot({ id, label = "Publicidade", minHeight = "100px" 
       style={{ minHeight }}
     >
       {label}
-      {/* Cole aqui o código do seu ad network quando estiver pronto. */}
     </div>
   );
 }

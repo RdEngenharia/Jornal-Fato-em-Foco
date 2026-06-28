@@ -210,3 +210,62 @@ export async function unpublishArticle(id: number) {
 export async function getArticleForAdmin(id: number): Promise<Article | null> {
   return getArticleById(id);
 }
+
+export type Advertisement = {
+  id: number;
+  advertiser_name: string;
+  image_url: string;
+  link_url: string;
+  slot_ids: string[];
+  active: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+  created_at: string;
+};
+
+export async function getAllAdvertisements(): Promise<Advertisement[]> {
+  const { rows } = await sql<Advertisement>`
+    SELECT * FROM advertisements ORDER BY created_at DESC;
+  `;
+  return rows;
+}
+
+// Busca o anúncio ativo (dentro do período vigente, se houver datas
+// definidas) para um slot específico. Se houver mais de um anúncio
+// cadastrado para o mesmo slot, retorna o mais recente.
+export async function getActiveAdForSlot(slotId: string): Promise<Advertisement | null> {
+  const { rows } = await sql<Advertisement>`
+    SELECT * FROM advertisements
+    WHERE active = true
+      AND ${slotId} = ANY(slot_ids)
+      AND (starts_at IS NULL OR starts_at <= now())
+      AND (ends_at IS NULL OR ends_at >= now())
+    ORDER BY created_at DESC
+    LIMIT 1;
+  `;
+  return rows[0] ?? null;
+}
+
+export async function createAdvertisement(input: {
+  advertiserName: string;
+  imageUrl: string;
+  linkUrl: string;
+  slotIds: string[];
+  startsAt?: string | null;
+  endsAt?: string | null;
+}): Promise<number> {
+  const { rows } = await sql`
+    INSERT INTO advertisements (advertiser_name, image_url, link_url, slot_ids, starts_at, ends_at)
+    VALUES (${input.advertiserName}, ${input.imageUrl}, ${input.linkUrl}, ${input.slotIds}, ${input.startsAt ?? null}, ${input.endsAt ?? null})
+    RETURNING id;
+  `;
+  return rows[0].id;
+}
+
+export async function toggleAdvertisement(id: number, active: boolean) {
+  await sql`UPDATE advertisements SET active = ${active} WHERE id = ${id};`;
+}
+
+export async function deleteAdvertisement(id: number) {
+  await sql`DELETE FROM advertisements WHERE id = ${id};`;
+}
