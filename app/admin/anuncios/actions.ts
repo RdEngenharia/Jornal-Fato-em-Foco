@@ -15,6 +15,7 @@ const ALL_SLOTS = [
 
 export async function createAdAction(formData: FormData) {
   const advertiserName = String(formData.get("advertiserName"));
+  const description = String(formData.get("description") || "").trim() || null;
   const imageUrl = String(formData.get("imageUrl"));
   const linkUrl = String(formData.get("linkUrl"));
   const slotIds = ALL_SLOTS.filter((slot) => formData.get(`slot_${slot}`) === "on");
@@ -31,7 +32,7 @@ export async function createAdAction(formData: FormData) {
     redirect("/admin/anuncios?error=campos_obrigatorios");
   }
 
-  await createAdvertisement({ advertiserName, imageUrl, linkUrl, slotIds, startsAt, endsAt });
+  await createAdvertisement({ advertiserName, description, imageUrl, linkUrl, slotIds, startsAt, endsAt });
   revalidatePath("/");
   revalidatePath("/admin/anuncios");
   redirect("/admin/anuncios?created=1");

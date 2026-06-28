@@ -19,17 +19,23 @@ export default async function AdSlot({ id, label = "Publicidade", minHeight = "1
         href={ad.link_url}
         target="_blank"
         rel="noopener noreferrer sponsored"
-        className="block relative rounded-lg overflow-hidden border border-ink/10"
-        style={{ minHeight }}
+        className="block rounded-lg overflow-hidden border border-ink/10"
       >
-        <img
-          src={ad.image_url}
-          alt={ad.advertiser_name}
-          className="w-full h-full object-cover"
-        />
-        <span className="absolute top-1.5 right-1.5 bg-ink/70 text-white text-[9px] font-sans px-1.5 py-0.5 rounded uppercase tracking-wide">
-          Publicidade
-        </span>
+        <div className="relative" style={{ minHeight }}>
+          <img
+            src={ad.image_url}
+            alt={ad.advertiser_name}
+            className="w-full h-full object-cover"
+          />
+          <span className="absolute top-1.5 right-1.5 bg-ink/70 text-white text-[9px] font-sans px-1.5 py-0.5 rounded uppercase tracking-wide">
+            Publicidade
+          </span>
+        </div>
+        {ad.description && (
+          <p className="font-sans text-xs text-ink/70 px-2.5 py-2 bg-white leading-snug">
+            {ad.description}
+          </p>
+        )}
       </Link>
     );
   }

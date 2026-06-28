@@ -214,6 +214,7 @@ export async function getArticleForAdmin(id: number): Promise<Article | null> {
 export type Advertisement = {
   id: number;
   advertiser_name: string;
+  description: string | null;
   image_url: string;
   link_url: string;
   slot_ids: string[];
@@ -248,6 +249,7 @@ export async function getActiveAdForSlot(slotId: string): Promise<Advertisement 
 
 export async function createAdvertisement(input: {
   advertiserName: string;
+  description?: string | null;
   imageUrl: string;
   linkUrl: string;
   slotIds: string[];
@@ -255,11 +257,12 @@ export async function createAdvertisement(input: {
   endsAt?: string | null;
 }): Promise<number> {
   const { rows } = await sql.query(
-    `INSERT INTO advertisements (advertiser_name, image_url, link_url, slot_ids, starts_at, ends_at)
-     VALUES ($1, $2, $3, $4::text[], $5, $6)
+    `INSERT INTO advertisements (advertiser_name, description, image_url, link_url, slot_ids, starts_at, ends_at)
+     VALUES ($1, $2, $3, $4, $5::text[], $6, $7)
      RETURNING id;`,
     [
       input.advertiserName,
+      input.description ?? null,
       input.imageUrl,
       input.linkUrl,
       input.slotIds,

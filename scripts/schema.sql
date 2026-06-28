@@ -72,6 +72,7 @@ CREATE INDEX IF NOT EXISTS idx_article_media_article_id ON article_media(article
 CREATE TABLE IF NOT EXISTS advertisements (
   id SERIAL PRIMARY KEY,
   advertiser_name TEXT NOT NULL,         -- nome da empresa anunciante
+  description TEXT,                       -- texto curto opcional sobre o anúncio (slogan, chamada)
   image_url TEXT NOT NULL,                -- imagem do anúncio (Vercel Blob)
   link_url TEXT NOT NULL,                 -- para onde o clique leva (site, WhatsApp, etc.)
   slot_ids TEXT[] NOT NULL,               -- quais posições do site exibem este anúncio, ex: ['ad-home-top', 'ad-article-footer']

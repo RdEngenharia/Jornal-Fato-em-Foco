@@ -86,6 +86,11 @@ export default async function AdsAdminPage() {
                   {ad.advertiser_name}
                 </p>
                 <p className="font-sans text-xs text-mute truncate">{ad.link_url}</p>
+                {ad.description && (
+                  <p className="font-sans text-xs text-ink/70 mt-0.5 italic">
+                    &quot;{ad.description}&quot;
+                  </p>
+                )}
                 {ad.ends_at && (
                   <p className={`font-sans text-xs mt-0.5 font-medium ${expiryStyle(ad.ends_at)}`}>
                     {expiryLabel(ad.ends_at)}

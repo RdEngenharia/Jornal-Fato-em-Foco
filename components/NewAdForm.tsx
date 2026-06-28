@@ -65,6 +65,21 @@ export default function NewAdForm() {
       </div>
 
       <div>
+        <label className="font-sans text-xs text-mute block mb-1">
+          Texto curto sobre o anúncio (opcional)
+        </label>
+        <input
+          name="description"
+          maxLength={80}
+          placeholder="Ex: Energia solar com até 95% de economia"
+          className="w-full font-sans text-sm bg-paper border border-ink/10 rounded-md px-3 py-2 focus:border-terracotta"
+        />
+        <p className="font-sans text-[11px] text-mute/70 mt-1">
+          Aparece como legenda abaixo da imagem do anúncio. Até 80 caracteres.
+        </p>
+      </div>
+
+      <div>
         <label className="font-sans text-xs text-mute block mb-1">Imagem do anúncio</label>
         {imageUrl ? (
           <div className="relative w-full aspect-[3/1] rounded-md overflow-hidden border border-ink/10 mb-2">
