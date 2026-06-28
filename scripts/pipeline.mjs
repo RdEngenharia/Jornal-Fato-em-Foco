@@ -5,28 +5,45 @@
 // Roda via: npm run pipeline
 // Em produção, é disparado por um workflow do GitHub Actions agendado.
 
-import Parser from "rss-parser";
-import Groq from "groq-sdk";
-import { sql } from "@vercel/postgres";
+import { config } from "dotenv";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Carrega o .env.local da raiz do projeto quando rodado localmente.
+// No GitHub Actions, as variáveis já vêm injetadas via `env:` no workflow,
+// então esse arquivo simplesmente não existe ali — e está tudo bem, dotenv
+// não quebra se o arquivo não for encontrado.
+config({ path: join(__dirname, "..", ".env.local") });
+
+const Parser = (await import("rss-parser")).default;
+const Groq = (await import("groq-sdk")).default;
+const { sql } = await import("@vercel/postgres");
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const parser = new Parser();
 
 // ----------------------------------------------------------------
 // 1) CONFIGURAÇÃO DE FONTES
-// Troque pelas URLs reais dos feeds que você quer monitorar:
-// diários oficiais, portais regionais, prefeituras, etc.
+// Fontes da região de Porto Seguro/BA (Costa do Descobrimento).
+// Adicione mais conforme for confirmando outros feeds que funcionam.
 // ----------------------------------------------------------------
 const FEEDS = [
   {
-    name: "Exemplo Diário Oficial",
-    type: "oficial",
-    url: "https://exemplo-prefeitura.gov.br/diario-oficial/feed",
+    name: "Radar News",
+    type: "portal_regional",
+    url: "https://radar.news/feed/",
   },
   {
-    name: "Exemplo Portal Regional",
+    name: "Namidia News",
     type: "portal_regional",
-    url: "https://exemplo-portal-regional.com.br/feed",
+    url: "https://namidia.news/feed/",
+  },
+  {
+    name: "Hoje Bahia - Municípios",
+    type: "portal_regional",
+    url: "https://hojebahia.com.br/feed/19/municipios/",
   },
 ];
 
