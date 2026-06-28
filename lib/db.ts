@@ -254,11 +254,19 @@ export async function createAdvertisement(input: {
   startsAt?: string | null;
   endsAt?: string | null;
 }): Promise<number> {
-  const { rows } = await sql`
-    INSERT INTO advertisements (advertiser_name, image_url, link_url, slot_ids, starts_at, ends_at)
-    VALUES (${input.advertiserName}, ${input.imageUrl}, ${input.linkUrl}, ${input.slotIds}, ${input.startsAt ?? null}, ${input.endsAt ?? null})
-    RETURNING id;
-  `;
+  const { rows } = await sql.query(
+    `INSERT INTO advertisements (advertiser_name, image_url, link_url, slot_ids, starts_at, ends_at)
+     VALUES ($1, $2, $3, $4::text[], $5, $6)
+     RETURNING id;`,
+    [
+      input.advertiserName,
+      input.imageUrl,
+      input.linkUrl,
+      input.slotIds,
+      input.startsAt ?? null,
+      input.endsAt ?? null,
+    ]
+  );
   return rows[0].id;
 }
 
