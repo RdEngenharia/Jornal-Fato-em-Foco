@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createAdAction } from "./actions";
+import { createAdAction } from "@/app/admin/anuncios/actions";
 
 const SLOTS = [
   { id: "ad-home-top", label: "Topo da home" },
