@@ -19,6 +19,20 @@ export default function MediaGalleryField({ initialMedia = [] }: Props) {
   const [videoInput, setVideoInput] = useState("");
   const [videoStatus, setVideoStatus] = useState<"idle" | "checking" | "error">("idle");
   const [videoError, setVideoError] = useState<string | null>(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  async function handleCopyMarker(imagePosition: number) {
+    const marker = `[IMAGEM:${imagePosition}]`;
+    try {
+      await navigator.clipboard.writeText(marker);
+      setCopiedIndex(imagePosition);
+      setTimeout(() => setCopiedIndex(null), 1500);
+    } catch {
+      // Clipboard pode falhar em contextos sem permissão (raro); sem
+      // necessidade de tratamento visual extra além de simplesmente
+      // não mostrar a confirmação de cópia.
+    }
+  }
 
   async function handleFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -110,53 +124,72 @@ export default function MediaGalleryField({ initialMedia = [] }: Props) {
 
         {items.length > 0 && (
           <div className="grid grid-cols-3 gap-2 mb-2">
-            {items.map((item, index) => (
-              <div key={index} className="relative aspect-square rounded-md overflow-hidden border border-ink/10 bg-white">
-                {item.type === "image" ? (
-                  <img
-                    src={item.previewUrl ?? item.url}
-                    alt={`Imagem ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-ink/5 p-2">
-                    <span className="font-sans text-xs text-mute text-center">
-                      Vídeo ({item.url.includes("instagram") ? "Instagram" : "YouTube"})
-                    </span>
-                  </div>
-                )}
-                {!item.url && item.type === "image" && (
-                  <div className="absolute inset-0 bg-ink/40 flex items-center justify-center">
-                    <span className="font-sans text-[10px] text-white">Enviando...</span>
-                  </div>
-                )}
-                <div className="absolute top-1 right-1 flex gap-1">
-                  {index > 0 && (
+            {items.map((item, index) => {
+              // Posição 1-based só entre as imagens (vídeos não contam
+              // para a numeração do marcador [IMAGEM:N]).
+              const imagePosition =
+                item.type === "image"
+                  ? items.slice(0, index + 1).filter((i) => i.type === "image").length
+                  : null;
+
+              return (
+                <div key={index} className="relative aspect-square rounded-md overflow-hidden border border-ink/10 bg-white">
+                  {item.type === "image" ? (
+                    <img
+                      src={item.previewUrl ?? item.url}
+                      alt={`Imagem ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-ink/5 p-2">
+                      <span className="font-sans text-xs text-mute text-center">
+                        Vídeo ({item.url.includes("instagram") ? "Instagram" : "YouTube"})
+                      </span>
+                    </div>
+                  )}
+                  {!item.url && item.type === "image" && (
+                    <div className="absolute inset-0 bg-ink/40 flex items-center justify-center">
+                      <span className="font-sans text-[10px] text-white">Enviando...</span>
+                    </div>
+                  )}
+                  <div className="absolute top-1 right-1 flex gap-1">
+                    {index > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => moveItem(index, -1)}
+                        className="bg-ink/80 text-white text-[10px] w-5 h-5 rounded flex items-center justify-center hover:bg-ink"
+                        title="Mover para a esquerda"
+                      >
+                        ←
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={() => moveItem(index, -1)}
-                      className="bg-ink/80 text-white text-[10px] w-5 h-5 rounded flex items-center justify-center hover:bg-ink"
-                      title="Mover para a esquerda"
+                      onClick={() => handleRemove(index)}
+                      className="bg-ink/80 text-white text-[10px] w-5 h-5 rounded flex items-center justify-center hover:bg-terracotta"
+                      title="Remover"
                     >
-                      ←
+                      ✕
+                    </button>
+                  </div>
+                  {index === 0 && item.type === "image" && (
+                    <span className="absolute bottom-1 left-1 bg-terracotta text-white text-[9px] font-sans px-1.5 py-0.5 rounded">
+                      Capa
+                    </span>
+                  )}
+                  {item.type === "image" && item.url && imagePosition && imagePosition > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopyMarker(imagePosition)}
+                      title="Copiar marcador para colar no texto"
+                      className="absolute bottom-1 left-1 bg-ink/80 text-white text-[9px] font-sans px-1.5 py-0.5 rounded hover:bg-terracotta transition-colors"
+                    >
+                      {copiedIndex === imagePosition ? "Copiado!" : `Foto ${imagePosition} · copiar`}
                     </button>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => handleRemove(index)}
-                    className="bg-ink/80 text-white text-[10px] w-5 h-5 rounded flex items-center justify-center hover:bg-terracotta"
-                    title="Remover"
-                  >
-                    ✕
-                  </button>
                 </div>
-                {index === 0 && item.type === "image" && (
-                  <span className="absolute bottom-1 left-1 bg-terracotta text-white text-[9px] font-sans px-1.5 py-0.5 rounded">
-                    Capa
-                  </span>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -173,7 +206,9 @@ export default function MediaGalleryField({ initialMedia = [] }: Props) {
           />
         </label>
         <p className="font-sans text-[11px] text-mute/70 mt-1">
-          A primeira imagem é usada como capa. Arraste com as setas para reordenar.
+          A primeira imagem é usada como capa. Para inserir outra imagem no
+          meio do texto, clique em <strong>&quot;Foto N · copiar&quot;</strong>{" "}
+          na miniatura e cole (Ctrl+V) no ponto desejado do corpo da matéria.
         </p>
       </div>
 
