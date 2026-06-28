@@ -17,7 +17,13 @@ export async function publishAction(formData: FormData) {
   const existing = await getArticleById(id);
   const wasAlreadyPublished = existing?.status === "published";
 
-  let media: { type: "image" | "video_embed"; url: string; embedUrl: string | null }[] = [];
+  let media: {
+    type: "image" | "video_embed";
+    url: string;
+    embedUrl: string | null;
+    originalUrl?: string | null;
+    isSensitive?: boolean;
+  }[] = [];
   try {
     media = mediaJsonRaw ? JSON.parse(String(mediaJsonRaw)) : [];
   } catch {

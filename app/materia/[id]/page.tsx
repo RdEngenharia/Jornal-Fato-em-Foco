@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublishedArticleById, getMediaByArticleId } from "@/lib/db";
+import { getPublishedArticleById, getMediaByArticleId, type ArticleMedia } from "@/lib/db";
 import AdSlot from "@/components/AdSlot";
+import SensitiveImage from "@/components/SensitiveImage";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -13,6 +14,31 @@ function formatDate(dateStr: string) {
     month: "long",
     year: "numeric",
   });
+}
+
+// Renderiza uma imagem da matéria, decidindo entre exibição normal ou
+// o aviso de "conteúdo sensível" (quando marcada como is_sensitive e
+// tendo uma original_url guardada para revelar após confirmação).
+function ArticleImage({
+  img,
+  alt,
+  className,
+}: {
+  img: ArticleMedia;
+  alt: string;
+  className: string;
+}) {
+  if (img.is_sensitive && img.original_url) {
+    return (
+      <SensitiveImage
+        blurredUrl={img.url}
+        originalUrl={img.original_url}
+        alt={alt}
+        className={className}
+      />
+    );
+  }
+  return <img src={img.url} alt={alt} className={className} />;
 }
 
 // Divide o corpo da matéria em blocos de texto e marcadores de imagem
@@ -96,8 +122,8 @@ export default async function ArticlePage({
         </h1>
 
         {coverImage && (
-          <img
-            src={coverImage.url}
+          <ArticleImage
+            img={coverImage}
             alt={article.title}
             className="w-full aspect-[16/9] object-cover rounded-2xl mb-8"
           />
@@ -122,9 +148,9 @@ export default async function ArticlePage({
             const img = images[block.index - 1];
             if (!img) return null;
             return (
-              <img
+              <ArticleImage
                 key={i}
-                src={img.url}
+                img={img}
                 alt={article.title}
                 className="w-full aspect-[16/9] object-cover rounded-xl my-6"
               />
@@ -135,9 +161,9 @@ export default async function ArticlePage({
         {leftoverImages.length > 0 && (
           <div className="grid grid-cols-2 gap-3 mt-8">
             {leftoverImages.map((img) => (
-              <img
+              <ArticleImage
                 key={img.id}
-                src={img.url}
+                img={img}
                 alt={article.title}
                 className="w-full aspect-[4/3] object-cover rounded-xl"
               />

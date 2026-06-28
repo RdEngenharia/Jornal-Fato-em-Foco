@@ -20,6 +20,8 @@ export type ArticleMedia = {
   media_type: "image" | "video_embed";
   url: string;
   embed_url: string | null;
+  original_url: string | null;
+  is_sensitive: boolean;
   display_order: number;
 };
 
@@ -120,6 +122,8 @@ type MediaInput = {
   type: "image" | "video_embed";
   url: string;
   embedUrl?: string | null;
+  originalUrl?: string | null;
+  isSensitive?: boolean;
 };
 
 export async function publishArticle(
@@ -149,8 +153,8 @@ export async function publishArticle(
   let order = 0;
   for (const item of media) {
     await sql`
-      INSERT INTO article_media (article_id, media_type, url, embed_url, display_order)
-      VALUES (${id}, ${item.type}, ${item.url}, ${item.embedUrl ?? null}, ${order});
+      INSERT INTO article_media (article_id, media_type, url, embed_url, original_url, is_sensitive, display_order)
+      VALUES (${id}, ${item.type}, ${item.url}, ${item.embedUrl ?? null}, ${item.originalUrl ?? null}, ${item.isSensitive ?? false}, ${order});
     `;
     order++;
   }

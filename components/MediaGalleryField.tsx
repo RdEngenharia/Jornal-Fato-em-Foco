@@ -9,6 +9,8 @@ export type MediaItem = {
   embedUrl?: string | null;
   previewUrl?: string; // usado só para preview local antes do upload terminar
   isBlurred?: boolean; // marca se essa imagem já foi desfocada
+  originalUrl?: string | null; // URL da versão nítida, guardada quando a imagem é marcada como sensível
+  isSensitive?: boolean; // true = mostra aviso "conteúdo sensível, clique para ver" no site público
 };
 
 type Props = {
@@ -96,7 +98,11 @@ export default function MediaGalleryField({ initialMedia = [] }: Props) {
 
     setProcessingIndex(index);
     try {
-      // Busca o arquivo atual (já no Blob Storage) para reprocessar.
+      // Guarda a URL nítida ATUAL antes de qualquer processamento — essa
+      // é a versão que será revelada no site público após o leitor
+      // confirmar que quer ver o conteúdo sensível.
+      const originalUrl = item.url;
+
       const sourceUrl = item.previewUrl ?? item.url;
       const res = await fetch(sourceUrl);
       const blob = await res.blob();
@@ -113,7 +119,16 @@ export default function MediaGalleryField({ initialMedia = [] }: Props) {
 
       setItems((prev) =>
         prev.map((it, i) =>
-          i === index ? { ...it, url: data.url, previewUrl: newPreview, isBlurred: true } : it
+          i === index
+            ? {
+                ...it,
+                url: data.url, // versão borrada — exibida por padrão
+                previewUrl: newPreview,
+                isBlurred: true,
+                isSensitive: true,
+                originalUrl, // versão nítida — revelada só após clique do leitor
+              }
+            : it
         )
       );
     } catch {
@@ -121,6 +136,18 @@ export default function MediaGalleryField({ initialMedia = [] }: Props) {
     } finally {
       setProcessingIndex(null);
     }
+  }
+
+  function handleUnblurImage(index: number) {
+    // Desfaz o desfoque: volta a usar a URL original como exibição
+    // padrão, removendo o aviso de conteúdo sensível.
+    setItems((prev) =>
+      prev.map((it, i) =>
+        i === index && it.originalUrl
+          ? { ...it, url: it.originalUrl, isBlurred: false, isSensitive: false, originalUrl: null }
+          : it
+      )
+    );
   }
 
   function moveItem(index: number, direction: -1 | 1) {
@@ -248,9 +275,14 @@ export default function MediaGalleryField({ initialMedia = [] }: Props) {
                     </button>
                   </div>
                   {item.isBlurred && (
-                    <span className="absolute top-1 left-1 bg-ink/80 text-white text-[9px] font-sans px-1.5 py-0.5 rounded">
-                      Desfocada
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleUnblurImage(index)}
+                      title="Desfazer desfoque (volta a mostrar nítida no painel; no site, leitor ainda precisa confirmar para ver)"
+                      className="absolute top-1 left-1 bg-ink/80 text-white text-[9px] font-sans px-1.5 py-0.5 rounded hover:bg-terracotta transition-colors"
+                    >
+                      Desfocada ✕
+                    </button>
                   )}
                   {index === 0 && item.type === "image" && (
                     <span className="absolute bottom-1 left-1 bg-terracotta text-white text-[9px] font-sans px-1.5 py-0.5 rounded">
@@ -325,7 +357,13 @@ export default function MediaGalleryField({ initialMedia = [] }: Props) {
         value={JSON.stringify(
           items
             .filter((i) => i.url) // ignora placeholders ainda enviando
-            .map((i) => ({ type: i.type, url: i.url, embedUrl: i.embedUrl ?? null }))
+            .map((i) => ({
+              type: i.type,
+              url: i.url,
+              embedUrl: i.embedUrl ?? null,
+              originalUrl: i.originalUrl ?? null,
+              isSensitive: i.isSensitive ?? false,
+            }))
         )}
       />
     </div>

@@ -29,6 +29,8 @@ CREATE TABLE IF NOT EXISTS article_media (
   media_type TEXT NOT NULL,                   -- 'image' | 'video_embed'
   url TEXT NOT NULL,                          -- URL da imagem (/api/image?...) ou URL original do vídeo
   embed_url TEXT,                             -- para vídeos: URL já transformada para embed (iframe)
+  original_url TEXT,                          -- para imagens marcadas como sensíveis: URL da versão nítida, revelada só após confirmação do leitor
+  is_sensitive BOOLEAN NOT NULL DEFAULT false, -- true = mostra aviso "conteúdo sensível" no site público
   display_order INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
