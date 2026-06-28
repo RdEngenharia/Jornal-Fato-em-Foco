@@ -22,7 +22,21 @@ const Groq = (await import("groq-sdk")).default;
 const { sql } = await import("@vercel/postgres");
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-const parser = new Parser();
+
+// Alguns sites (atrás de Cloudflare ou proteção similar) bloqueiam
+// requisições sem um User-Agent que pareça vir de um navegador real,
+// especialmente vindas de IPs de datacenter (como os do GitHub Actions).
+// Esse header reduz a chance de bloqueio 403, embora não elimine o risco
+// por completo em sites com proteção anti-bot mais sofisticada.
+const BROWSER_USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+
+const parser = new Parser({
+  headers: {
+    "User-Agent": BROWSER_USER_AGENT,
+    Accept: "application/rss+xml, application/xml, text/xml, */*",
+  },
+});
 
 // ----------------------------------------------------------------
 // 1) CONFIGURAÇÃO DE FONTES
@@ -110,7 +124,9 @@ async function collectFeeds() {
         // Se o rss-parser não reconheceu o formato, tenta o fallback RDF
         // antes de desistir do feed por completo.
         if (err.message.includes("not recognized as RSS")) {
-          const res = await fetch(feed.url);
+          const res = await fetch(feed.url, {
+            headers: { "User-Agent": BROWSER_USER_AGENT },
+          });
           const xml = await res.text();
           items = parseRdfFeed(xml);
         } else {
