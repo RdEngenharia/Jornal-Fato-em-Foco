@@ -12,9 +12,6 @@ export async function publishAction(formData: FormData) {
   const category = String(formData.get("category") || "geral");
   const mediaJsonRaw = formData.get("mediaJson");
 
-  // Log temporário de diagnóstico — remover depois de confirmar a causa.
-  console.log("[DEBUG publishAction] mediaJsonRaw recebido:", mediaJsonRaw);
-
   // Verifica se já estava publicada antes de atualizar, para saber para
   // onde redirecionar depois (lista de rascunhos vs. lista de publicadas).
   const existing = await getArticleById(id);
@@ -23,12 +20,9 @@ export async function publishAction(formData: FormData) {
   let media: { type: "image" | "video_embed"; url: string; embedUrl: string | null }[] = [];
   try {
     media = mediaJsonRaw ? JSON.parse(String(mediaJsonRaw)) : [];
-  } catch (err) {
-    console.log("[DEBUG publishAction] erro ao fazer parse do mediaJson:", err);
+  } catch {
     media = [];
   }
-
-  console.log("[DEBUG publishAction] media após parse:", media);
 
   await publishArticle(id, title, lead, body, category, media);
   revalidatePath("/"); // home pública, onde as matérias aparecem

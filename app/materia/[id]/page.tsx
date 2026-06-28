@@ -47,24 +47,13 @@ export default async function ArticlePage({
   params: { id: string };
 }) {
   const id = Number(params.id);
-  console.log(`[DEBUG materia] params.id bruto:`, JSON.stringify(params.id), typeof params.id);
-  console.log(`[DEBUG materia] id convertido:`, id, typeof id, "isNaN:", Number.isNaN(id));
   const article = await getPublishedArticleById(id);
   if (!article) notFound();
 
-  // TESTE TEMPORÁRIO: query SQL direta, sem passar pela função de lib/db.ts,
-  // para isolar se o problema está na função em si ou em outro lugar.
-  const { sql } = await import("@vercel/postgres");
-  const directResult = await sql`SELECT * FROM article_media WHERE article_id = ${id} ORDER BY display_order ASC;`;
-  console.log(`[DEBUG materia] query DIRETA na página:`, JSON.stringify(directResult.rows));
-
   const media = await getMediaByArticleId(id);
-  console.log(`[DEBUG materia/${id}] media bruta do banco (via lib/db.ts):`, JSON.stringify(media));
   const images = media.filter((m) => m.media_type === "image");
-  console.log(`[DEBUG materia/${id}] images filtradas:`, JSON.stringify(images));
   const videos = media.filter((m) => m.media_type === "video_embed");
   const [coverImage, ...restImages] = images;
-  console.log(`[DEBUG materia/${id}] coverImage:`, JSON.stringify(coverImage));
 
   const bodyBlocks = parseBodyWithImages(article.body);
   const usedImageIndexes = new Set(
