@@ -106,10 +106,18 @@ export default async function ArticlePage({
       </article>
 
       <footer className="border-t border-ink/10 px-6 py-8 sm:px-10">
-        <p className="mx-auto max-w-3xl font-sans text-xs text-mute">
-          Fato em Foco — conteúdo apurado a partir de fontes públicas e
-          portais regionais, com revisão editorial antes da publicação.
-        </p>
+        <div className="mx-auto max-w-3xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <p className="font-sans text-xs text-mute">
+            Fato em Foco — conteúdo apurado a partir de fontes públicas e
+            portais regionais, com revisão editorial antes da publicação.
+          </p>
+          <Link
+            href="/sobre"
+            className="font-sans text-xs text-mute hover:text-terracotta transition-colors underline shrink-0"
+          >
+            Sobre o jornal
+          </Link>
+        </div>
       </footer>
     </main>
   );
