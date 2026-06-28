@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getPublishedArticleById, getMediaByArticleId, type ArticleMedia } from "@/lib/db";
 import AdSlot from "@/components/AdSlot";
 import SensitiveImage from "@/components/SensitiveImage";
+import WhatsAppTipBanner from "@/components/WhatsAppTipBanner";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -194,7 +195,10 @@ export default async function ArticlePage({
 
       <footer className="border-t border-ink/10 px-6 py-8 sm:px-10">
         <div className="mx-auto max-w-3xl">
-          <AdSlot id="ad-article-footer" minHeight="90px" />
+          <WhatsAppTipBanner />
+          <div className="mt-6">
+            <AdSlot id="ad-article-footer" minHeight="90px" />
+          </div>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6">
             <p className="font-sans text-xs text-mute">
               Fato em Foco — conteúdo apurado a partir de fontes públicas e

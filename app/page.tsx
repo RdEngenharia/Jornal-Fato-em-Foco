@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getPublishedArticles, getCoverImagesForArticles } from "@/lib/db";
 import CategoryTabs from "@/components/CategoryTabs";
 import AdSlot from "@/components/AdSlot";
+import WhatsAppTipBanner from "@/components/WhatsAppTipBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -73,7 +74,16 @@ export default async function PublicHome({
         <AdSlot id="ad-home-top" minHeight="90px" />
       </div>
 
-      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-10">
+      {/* Layout de 3 colunas em telas extra grandes: anúncio | conteúdo | anúncio.
+          Em telas menores, as colunas laterais somem e o conteúdo ocupa tudo. */}
+      <div className="mx-auto max-w-[1600px] px-5 py-8 sm:px-10 grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)_220px] gap-8">
+        <aside className="hidden xl:block">
+          <div className="sticky top-24">
+            <AdSlot id="ad-home-sidebar-left" minHeight="500px" />
+          </div>
+        </aside>
+
+        <div className="max-w-6xl mx-auto w-full">
         {articles.length === 0 && (
           <div className="border border-dashed border-mute/30 rounded-2xl p-16 text-center">
             <p className="font-display text-xl text-ink mb-2">
@@ -168,11 +178,21 @@ export default async function PublicHome({
             ))}
           </div>
         )}
+        </div>
+
+        <aside className="hidden xl:block">
+          <div className="sticky top-24">
+            <AdSlot id="ad-home-sidebar-right" minHeight="500px" />
+          </div>
+        </aside>
       </div>
 
       <footer className="border-t border-ink/10 px-5 py-8 sm:px-10 mt-10">
         <div className="mx-auto max-w-6xl">
-          <AdSlot id="ad-home-footer" minHeight="90px" />
+          <WhatsAppTipBanner />
+          <div className="mt-6">
+            <AdSlot id="ad-home-footer" minHeight="90px" />
+          </div>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6">
             <p className="font-sans text-xs text-mute">
               Fato em Foco — conteúdo apurado a partir de fontes públicas e
