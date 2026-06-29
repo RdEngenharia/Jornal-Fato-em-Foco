@@ -74,6 +74,18 @@ const FEEDS = [
     url: "https://ba.agenciasebrae.com.br/feed/",
     defaultCategory: "negocios",
   },
+  {
+    name: "Agência Brasil - Política",
+    type: "oficial",
+    url: "http://agenciabrasil.ebc.com.br/rss/politica/feed.xml",
+    defaultCategory: "politica",
+  },
+  {
+    name: "Governo da Bahia - SECOM",
+    type: "oficial",
+    url: "https://www.ba.gov.br/comunicacao/feed",
+    defaultCategory: "geral",
+  },
 ];
 
 const RELIABILITY_THRESHOLD = 50; // matérias abaixo disso não vão para o Redator
@@ -213,8 +225,18 @@ function isRelevant(item) {
     return true;
   }
 
-  if (item.sourceName === "TSE - Tribunal Superior Eleitoral") {
-    // Deixa passar para o Redator avaliar relevância nacional vs. local.
+  // Fontes nacionais/estaduais institucionais: o filtro mecânico não
+  // exige menção explícita à região (uma notícia estadual relevante,
+  // como abertura de edital de concurso, raramente cita a cidade
+  // específica no resumo do RSS), deixando o julgamento de relevância
+  // (local x nacional/estadual com impacto real) a cargo do Redator —
+  // ver critério no prompt de writeArticle.
+  const INSTITUTIONAL_SOURCES = [
+    "TSE - Tribunal Superior Eleitoral",
+    "Agência Brasil - Política",
+    "Governo da Bahia - SECOM",
+  ];
+  if (INSTITUTIONAL_SOURCES.includes(item.sourceName)) {
     return true;
   }
 
@@ -355,6 +377,8 @@ CRITÉRIO EDITORIAL SOBRE POLÍTICA: este jornal publica política e eleições,
 - Política/gestão LOCAL (prefeito, câmara de vereadores, decisões administrativas da região) -> SEMPRE relevante, pode escrever.
 - Eleições/política NACIONAL ou ESTADUAL (presidência, governo do estado, TSE, partidos em Brasília) -> só é relevante se tiver IMPACTO DIRETO E CONCRETO no dia a dia do leitor local (ex: nova lei eleitoral que muda prazo de votação, decisão do TSE que afeta todos os eleitores). Bastidores partidários, disputas internas de partido, fofoca política, ou burocracia administrativa interna (sistemas internos do TSE, prestação de contas de partidos, recesso forense) NÃO são relevantes para esse jornal.
 - Se as fontes forem sobre política nacional SEM relevância direta para o leitor local, responda apenas com {"skip": true} e nada mais.
+
+CRITÉRIO EDITORIAL SOBRE CONCURSOS PÚBLICOS E EDITAIS: notícias do Governo do Estado da Bahia sobre autorização, abertura, ou retomada de concurso público (qualquer órgão estadual) são SEMPRE relevantes para este jornal, mesmo sem menção direta à região — vagas de concurso estadual podem ser disputadas por qualquer morador da Bahia, incluindo o extremo sul. Use categoria "geral" ou "negocios" para esse tipo de matéria, e inclua no corpo, quando disponível na fonte: órgão responsável, número de vagas, cargo, e se há data prevista para o edital.
 
 Fontes:
 ${sourcesText}
