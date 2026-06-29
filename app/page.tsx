@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { getPublishedArticles, getCoverImagesForArticles } from "@/lib/db";
+import { getPublishedArticles, getPublishedArticlesCount, getCoverImagesForArticles } from "@/lib/db";
 import CategoryTabs from "@/components/CategoryTabs";
 import AdSlot from "@/components/AdSlot";
 import WhatsAppTipBanner from "@/components/WhatsAppTipBanner";
 import LastUpdatedBadge from "@/components/LastUpdatedBadge";
+import Pagination from "@/components/Pagination";
 
 export const dynamic = "force-dynamic";
 
@@ -46,12 +47,23 @@ function PlaceholderArt({ seed }: { seed: number }) {
 export default async function PublicHome({
   searchParams,
 }: {
-  searchParams: { categoria?: string };
+  searchParams: { categoria?: string; pagina?: string };
 }) {
   const activeCategory = searchParams.categoria ?? "todas";
-  const articles = await getPublishedArticles(activeCategory);
+  const currentPage = Math.max(1, Number(searchParams.pagina) || 1);
+
+  const [articles, totalCount] = await Promise.all([
+    getPublishedArticles(activeCategory, currentPage),
+    getPublishedArticlesCount(activeCategory),
+  ]);
   const coverImages = await getCoverImagesForArticles(articles.map((a) => a.id));
-  const [destaque, ...resto] = articles;
+
+  const ARTICLES_PER_PAGE = 18;
+  const totalPages = Math.max(1, Math.ceil(totalCount / ARTICLES_PER_PAGE));
+
+  // O destaque (card grande no topo) só aparece na primeira página, para
+  // não repetir a mesma matéria em destaque em todas as páginas.
+  const [destaque, ...resto] = currentPage === 1 ? articles : [undefined, ...articles];
 
   return (
     <main className="min-h-screen bg-paper">
@@ -83,8 +95,9 @@ export default async function PublicHome({
           Em telas menores, as colunas laterais somem e o conteúdo ocupa tudo. */}
       <div className="mx-auto max-w-[1600px] px-5 py-8 sm:px-10 grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)_220px] gap-8">
         <aside className="hidden xl:block">
-          <div className="sticky top-24">
-            <AdSlot id="ad-home-sidebar-left" minHeight="500px" />
+          <div className="sticky top-24 space-y-4">
+            <AdSlot id="ad-home-sidebar-left-1" minHeight="240px" />
+            <AdSlot id="ad-home-sidebar-left-2" minHeight="240px" />
           </div>
         </aside>
 
@@ -183,11 +196,14 @@ export default async function PublicHome({
             ))}
           </div>
         )}
+
+        <Pagination currentPage={currentPage} totalPages={totalPages} category={activeCategory} />
         </div>
 
         <aside className="hidden xl:block">
-          <div className="sticky top-24">
-            <AdSlot id="ad-home-sidebar-right" minHeight="500px" />
+          <div className="sticky top-24 space-y-4">
+            <AdSlot id="ad-home-sidebar-right-1" minHeight="240px" />
+            <AdSlot id="ad-home-sidebar-right-2" minHeight="240px" />
           </div>
         </aside>
       </div>

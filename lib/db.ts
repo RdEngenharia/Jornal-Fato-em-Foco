@@ -168,12 +168,20 @@ export async function rejectArticle(id: number) {
   `;
 }
 
-export async function getPublishedArticles(category?: string): Promise<Article[]> {
+const ARTICLES_PER_PAGE = 18;
+
+export async function getPublishedArticles(
+  category?: string,
+  page: number = 1
+): Promise<Article[]> {
+  const offset = (page - 1) * ARTICLES_PER_PAGE;
+
   if (category && category !== "todas") {
     const { rows } = await sql<Article>`
       SELECT * FROM articles
       WHERE status = 'published' AND category = ${category}
-      ORDER BY published_at DESC;
+      ORDER BY published_at DESC
+      LIMIT ${ARTICLES_PER_PAGE} OFFSET ${offset};
     `;
     return rows;
   }
@@ -181,9 +189,25 @@ export async function getPublishedArticles(category?: string): Promise<Article[]
   const { rows } = await sql<Article>`
     SELECT * FROM articles
     WHERE status = 'published'
-    ORDER BY published_at DESC;
+    ORDER BY published_at DESC
+    LIMIT ${ARTICLES_PER_PAGE} OFFSET ${offset};
   `;
   return rows;
+}
+
+export async function getPublishedArticlesCount(category?: string): Promise<number> {
+  if (category && category !== "todas") {
+    const { rows } = await sql<{ count: string }>`
+      SELECT COUNT(*) as count FROM articles
+      WHERE status = 'published' AND category = ${category};
+    `;
+    return Number(rows[0]?.count ?? 0);
+  }
+
+  const { rows } = await sql<{ count: string }>`
+    SELECT COUNT(*) as count FROM articles WHERE status = 'published';
+  `;
+  return Number(rows[0]?.count ?? 0);
 }
 
 export async function getPublishedArticleById(id: number): Promise<Article | null> {
@@ -275,6 +299,41 @@ export async function createAdvertisement(input: {
 
 export async function toggleAdvertisement(id: number, active: boolean) {
   await sql`UPDATE advertisements SET active = ${active} WHERE id = ${id};`;
+}
+
+export async function updateAdvertisement(
+  id: number,
+  input: {
+    advertiserName: string;
+    description?: string | null;
+    imageUrl: string;
+    linkUrl?: string | null;
+    slotIds: string[];
+    startsAt?: string | null;
+    endsAt?: string | null;
+  }
+) {
+  await sql.query(
+    `UPDATE advertisements
+     SET advertiser_name = $1, description = $2, image_url = $3, link_url = $4,
+         slot_ids = $5::text[], starts_at = $6, ends_at = $7
+     WHERE id = $8;`,
+    [
+      input.advertiserName,
+      input.description ?? null,
+      input.imageUrl,
+      input.linkUrl ?? null,
+      input.slotIds,
+      input.startsAt ?? null,
+      input.endsAt ?? null,
+      id,
+    ]
+  );
+}
+
+export async function getAdvertisementById(id: number): Promise<Advertisement | null> {
+  const { rows } = await sql<Advertisement>`SELECT * FROM advertisements WHERE id = ${id};`;
+  return rows[0] ?? null;
 }
 
 export async function deleteAdvertisement(id: number) {

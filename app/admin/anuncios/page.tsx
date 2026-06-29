@@ -7,8 +7,10 @@ export const dynamic = "force-dynamic";
 
 const SLOT_LABELS: Record<string, string> = {
   "ad-home-top": "Topo da home",
-  "ad-home-sidebar-left": "Lateral esquerda",
-  "ad-home-sidebar-right": "Lateral direita",
+  "ad-home-sidebar-left-1": "Lateral esquerda 1",
+  "ad-home-sidebar-left-2": "Lateral esquerda 2",
+  "ad-home-sidebar-right-1": "Lateral direita 1",
+  "ad-home-sidebar-right-2": "Lateral direita 2",
   "ad-home-footer": "Rodapé da home",
   "ad-in-article": "Dentro da matéria",
   "ad-article-footer": "Rodapé da matéria",
@@ -108,6 +110,12 @@ export default async function AdsAdminPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                <Link
+                  href={`/admin/anuncios/${ad.id}`}
+                  className="font-sans text-xs px-3 py-1.5 rounded-md border border-ink/15 text-ink hover:bg-ink/5 transition-colors"
+                >
+                  Editar
+                </Link>
                 <form action={toggleAdAction}>
                   <input type="hidden" name="id" value={ad.id} />
                   <input type="hidden" name="active" value={(!ad.active).toString()} />

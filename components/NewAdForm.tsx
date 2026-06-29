@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { createAdAction } from "@/app/admin/anuncios/actions";
+import { createAdAction, updateAdAction } from "@/app/admin/anuncios/actions";
+import type { Advertisement } from "@/lib/db";
 
 const SLOTS = [
   { id: "ad-home-top", label: "Topo da home" },
-  { id: "ad-home-sidebar-left", label: "Lateral esquerda (home, telas grandes)" },
-  { id: "ad-home-sidebar-right", label: "Lateral direita (home, telas grandes)" },
+  { id: "ad-home-sidebar-left-1", label: "Lateral esquerda — posição 1 (home, telas grandes)" },
+  { id: "ad-home-sidebar-left-2", label: "Lateral esquerda — posição 2 (home, telas grandes)" },
+  { id: "ad-home-sidebar-right-1", label: "Lateral direita — posição 1 (home, telas grandes)" },
+  { id: "ad-home-sidebar-right-2", label: "Lateral direita — posição 2 (home, telas grandes)" },
   { id: "ad-home-footer", label: "Rodapé da home" },
   { id: "ad-in-article", label: "Dentro da matéria" },
   { id: "ad-article-footer", label: "Rodapé da matéria" },
@@ -16,7 +19,7 @@ const PLANS = {
   destaque: {
     label: "Destaque (home)",
     description: "Maior visibilidade — aparece para todo visitante que abre o site.",
-    slots: ["ad-home-top", "ad-home-sidebar-left", "ad-home-sidebar-right", "ad-home-footer"],
+    slots: ["ad-home-top", "ad-home-sidebar-left-1", "ad-home-sidebar-right-1", "ad-home-footer"],
   },
   padrao: {
     label: "Padrão (matérias)",
@@ -32,12 +35,24 @@ const PLANS = {
 
 type PlanKey = keyof typeof PLANS;
 
-export default function NewAdForm() {
-  const [imageUrl, setImageUrl] = useState("");
+function toDateInputValue(isoString: string | null): string {
+  if (!isoString) return "";
+  return isoString.slice(0, 10); // "AAAA-MM-DD" a partir do ISO completo
+}
+
+type Props = {
+  existingAd?: Advertisement;
+};
+
+export default function NewAdForm({ existingAd }: Props) {
+  const isEditing = !!existingAd;
+  const [imageUrl, setImageUrl] = useState(existingAd?.image_url ?? "");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [plan, setPlan] = useState<PlanKey>("destaque");
-  const [selectedSlots, setSelectedSlots] = useState<string[]>(PLANS.destaque.slots as unknown as string[]);
+  const [selectedSlots, setSelectedSlots] = useState<string[]>(
+    existingAd?.slot_ids ?? (PLANS.destaque.slots as unknown as string[])
+  );
 
   function handlePlanChange(newPlan: PlanKey) {
     setPlan(newPlan);
@@ -72,9 +87,15 @@ export default function NewAdForm() {
   }
 
   return (
-    <form action={createAdAction} className="rounded-lg border border-ink/10 bg-white p-5 space-y-4">
-      <h3 className="font-display text-lg font-semibold text-ink">Novo anúncio</h3>
+    <form
+      action={isEditing ? updateAdAction : createAdAction}
+      className="rounded-lg border border-ink/10 bg-white p-5 space-y-4"
+    >
+      <h3 className="font-display text-lg font-semibold text-ink">
+        {isEditing ? `Editar anúncio — ${existingAd.advertiser_name}` : "Novo anúncio"}
+      </h3>
 
+      {isEditing && <input type="hidden" name="id" value={existingAd.id} />}
       <input type="hidden" name="imageUrl" value={imageUrl} />
 
       <div>
@@ -96,6 +117,12 @@ export default function NewAdForm() {
             </button>
           ))}
         </div>
+        {isEditing && (
+          <p className="font-sans text-[11px] text-mute/70 mt-1.5">
+            As posições já selecionadas abaixo refletem o anúncio atual —
+            escolher um plano aqui substitui essa seleção.
+          </p>
+        )}
       </div>
 
       <div>
@@ -103,6 +130,7 @@ export default function NewAdForm() {
         <input
           name="advertiserName"
           required
+          defaultValue={existingAd?.advertiser_name}
           placeholder="Ex: Restaurante Sabor do Mar"
           className="w-full font-sans text-sm bg-paper border border-ink/10 rounded-md px-3 py-2 focus:border-terracotta"
         />
@@ -114,6 +142,7 @@ export default function NewAdForm() {
         </label>
         <input
           name="linkUrl"
+          defaultValue={existingAd?.link_url ?? ""}
           placeholder="https://wa.me/55... ou site da empresa"
           className="w-full font-sans text-sm bg-paper border border-ink/10 rounded-md px-3 py-2 focus:border-terracotta"
         />
@@ -130,6 +159,7 @@ export default function NewAdForm() {
         <input
           name="description"
           maxLength={80}
+          defaultValue={existingAd?.description ?? ""}
           placeholder="Ex: Energia solar com até 95% de economia"
           className="w-full font-sans text-sm bg-paper border border-ink/10 rounded-md px-3 py-2 focus:border-terracotta"
         />
@@ -141,8 +171,21 @@ export default function NewAdForm() {
       <div>
         <label className="font-sans text-xs text-mute block mb-1">Imagem do anúncio</label>
         {imageUrl ? (
-          <div className="relative w-full aspect-[3/1] rounded-md overflow-hidden border border-ink/10 mb-2">
-            <img src={imageUrl} alt="Preview do anúncio" className="w-full h-full object-cover" />
+          <div className="space-y-2">
+            <div className="relative w-full aspect-[3/1] rounded-md overflow-hidden border border-ink/10">
+              <img src={imageUrl} alt="Preview do anúncio" className="w-full h-full object-cover" />
+            </div>
+            <label className="inline-block font-sans text-xs text-terracotta cursor-pointer hover:underline">
+              Trocar imagem
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                disabled={uploading}
+                onChange={handleImageChange}
+              />
+            </label>
+            {uploading && <p className="font-sans text-xs text-mute">Enviando...</p>}
           </div>
         ) : (
           <label className="flex items-center justify-center w-full h-24 border border-dashed border-mute/40 rounded-md cursor-pointer hover:border-terracotta/50 bg-paper">
@@ -171,6 +214,7 @@ export default function NewAdForm() {
           <input
             type="date"
             name="startsAt"
+            defaultValue={toDateInputValue(existingAd?.starts_at ?? null)}
             className="w-full font-sans text-sm bg-paper border border-ink/10 rounded-md px-3 py-2 focus:border-terracotta"
           />
         </div>
@@ -181,6 +225,7 @@ export default function NewAdForm() {
           <input
             type="date"
             name="endsAt"
+            defaultValue={toDateInputValue(existingAd?.ends_at ?? null)}
             className="w-full font-sans text-sm bg-paper border border-ink/10 rounded-md px-3 py-2 focus:border-terracotta"
           />
         </div>
@@ -220,7 +265,7 @@ export default function NewAdForm() {
         disabled={!imageUrl || uploading || selectedSlots.length === 0}
         className="rounded-md bg-terracotta px-5 py-2.5 font-sans text-sm font-medium text-white hover:bg-terracotta-dark transition-colors disabled:opacity-40"
       >
-        Criar anúncio
+        {isEditing ? "Salvar alterações" : "Criar anúncio"}
       </button>
     </form>
   );
