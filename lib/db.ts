@@ -168,6 +168,20 @@ export async function rejectArticle(id: number) {
   `;
 }
 
+// Rejeita em massa todos os rascunhos pendentes criados há mais de
+// `daysOld` dias — útil para limpar rascunhos que perderam relevância
+// (notícia velha) sem precisar rejeitar um por um. Retorna quantos
+// foram afetados.
+export async function rejectOldPendingArticles(daysOld: number): Promise<number> {
+  const { rowCount } = await sql`
+    UPDATE articles
+    SET status = 'rejected', reviewed_at = now()
+    WHERE status = 'pending_review'
+      AND created_at < now() - (${daysOld} || ' days')::interval;
+  `;
+  return rowCount ?? 0;
+}
+
 const ARTICLES_PER_PAGE = 18;
 
 export async function getPublishedArticles(

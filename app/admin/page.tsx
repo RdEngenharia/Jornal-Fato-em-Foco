@@ -2,10 +2,15 @@ import Link from "next/link";
 import { getPendingArticles } from "@/lib/db";
 import ReliabilityBadge from "@/components/ReliabilityBadge";
 import AudioUploadCard from "@/components/AudioUploadCard";
+import { cleanupOldDraftsAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminHome() {
+export default async function AdminHome({
+  searchParams,
+}: {
+  searchParams: { cleaned?: string };
+}) {
   const articles = await getPendingArticles();
 
   return (
@@ -51,6 +56,44 @@ export default async function AdminHome() {
       <div className="mx-auto max-w-3xl mb-6">
         <AudioUploadCard />
       </div>
+
+      {searchParams.cleaned && (
+        <div className="mx-auto max-w-3xl mb-4 rounded-md bg-sage/10 border border-sage/30 px-4 py-3">
+          <p className="font-sans text-sm text-sage">
+            {searchParams.cleaned}{" "}
+            {searchParams.cleaned === "1" ? "rascunho antigo foi rejeitado" : "rascunhos antigos foram rejeitados"}.
+          </p>
+        </div>
+      )}
+
+      {articles.length > 0 && (
+        <div className="mx-auto max-w-3xl mb-6">
+          <form
+            action={cleanupOldDraftsAction}
+            className="flex items-center gap-3 rounded-lg border border-dashed border-mute/30 px-4 py-3"
+          >
+            <p className="font-sans text-xs text-mute flex-1">
+              Rejeitar em massa rascunhos pendentes com mais de
+            </p>
+            <select
+              name="daysOld"
+              defaultValue="3"
+              className="font-sans text-xs bg-white border border-ink/10 rounded-md px-2 py-1.5"
+            >
+              <option value="1">1 dia</option>
+              <option value="2">2 dias</option>
+              <option value="3">3 dias</option>
+              <option value="7">7 dias</option>
+            </select>
+            <button
+              type="submit"
+              className="font-sans text-xs text-terracotta-dark border border-terracotta/30 rounded-md px-3 py-1.5 hover:bg-terracotta/5 transition-colors shrink-0"
+            >
+              Limpar antigos
+            </button>
+          </form>
+        </div>
+      )}
 
       <div className="mx-auto max-w-3xl space-y-3">
         {articles.length === 0 && (
