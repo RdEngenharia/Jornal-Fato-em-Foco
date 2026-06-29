@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getPendingArticles } from "@/lib/db";
 import ReliabilityBadge from "@/components/ReliabilityBadge";
 import AudioUploadCard from "@/components/AudioUploadCard";
+import RunPipelineButton from "@/components/RunPipelineButton";
 import { cleanupOldDraftsAction, createManualDraftAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +27,7 @@ export default async function AdminHome({
             </h1>
           </div>
           <div className="flex items-center gap-3">
+            <RunPipelineButton />
             <form action={createManualDraftAction}>
               <button
                 type="submit"
