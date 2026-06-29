@@ -12,6 +12,10 @@ type AdSlotProps = {
    * anúncio nunca ficar maior que o esperado independente da proporção
    * da imagem enviada. Ex: "70px", "160px". */
   minHeight?: string;
+  /** Se true, não renderiza nada quando não houver anúncio ativo (em
+   * vez de mostrar o convite "Anuncie Aqui"). Útil para slots repetidos
+   * no feed, onde 4 convites seguidos poluiriam a experiência. */
+  hideCallToActionIfEmpty?: boolean;
 };
 
 function AdContent({ ad, height }: { ad: Advertisement; height: string }) {
@@ -39,7 +43,11 @@ function AdContent({ ad, height }: { ad: Advertisement; height: string }) {
   );
 }
 
-export default async function AdSlot({ id, minHeight = "100px" }: AdSlotProps) {
+export default async function AdSlot({
+  id,
+  minHeight = "100px",
+  hideCallToActionIfEmpty = false,
+}: AdSlotProps) {
   const ad = await getActiveAdForSlot(id);
 
   if (ad && ad.link_url) {
@@ -64,8 +72,12 @@ export default async function AdSlot({ id, minHeight = "100px" }: AdSlotProps) {
     );
   }
 
-  // Nenhum anúncio ativo para este slot: convite clicável para
-  // potenciais anunciantes, em vez de um espaço vazio.
+  // Nenhum anúncio ativo para este slot. Se configurado para não
+  // poluir o feed com convites repetidos, não renderiza nada.
+  if (hideCallToActionIfEmpty) {
+    return null;
+  }
+
   const whatsappNumber = await getWhatsAppNumber();
   const message = encodeURIComponent(
     "Olá! Vi o espaço de publicidade no Fato em Foco e quero saber mais sobre como anunciar."

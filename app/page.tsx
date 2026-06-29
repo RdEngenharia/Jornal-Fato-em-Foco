@@ -157,43 +157,69 @@ export default async function PublicHome({
 
         {resto.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {resto.map((article) => (
-              <Link
-                key={article.id}
-                href={`/materia/${article.id}`}
-                className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-ink/8 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
-              >
-                <div className="relative w-full aspect-[4/3] overflow-hidden">
-                  {coverImages[article.id] ? (
-                    <img
-                      src={coverImages[article.id]}
-                      alt={article.title}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  ) : (
-                    <PlaceholderArt seed={article.id} />
-                  )}
-                  <span
-                    className="absolute top-3 left-3 font-sans text-[10px] font-bold uppercase tracking-wider text-white px-2.5 py-1 rounded-full"
-                    style={{ backgroundColor: categoryColor(article.category) }}
-                  >
-                    {article.category}
-                  </span>
-                </div>
-                <div className="p-5 flex flex-col flex-1">
-                  <h3 className="font-display text-lg font-bold text-ink leading-snug mb-2 group-hover:text-terracotta transition-colors">
-                    {article.title}
-                  </h3>
-                  {article.lead && (
-                    <p className="font-sans text-sm text-ink/60 leading-relaxed mb-3 line-clamp-3">
-                      {article.lead}
+            {resto.map((article, index) => (
+              <>
+                <Link
+                  key={article.id}
+                  href={`/materia/${article.id}`}
+                  className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-ink/8 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                >
+                  <div className="relative w-full aspect-[4/3] overflow-hidden">
+                    {coverImages[article.id] ? (
+                      <img
+                        src={coverImages[article.id]}
+                        alt={article.title}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    ) : (
+                      <PlaceholderArt seed={article.id} />
+                    )}
+                    <span
+                      className="absolute top-3 left-3 font-sans text-[10px] font-bold uppercase tracking-wider text-white px-2.5 py-1 rounded-full"
+                      style={{ backgroundColor: categoryColor(article.category) }}
+                    >
+                      {article.category}
+                    </span>
+                  </div>
+                  <div className="p-5 flex flex-col flex-1">
+                    <h3 className="font-display text-lg font-bold text-ink leading-snug mb-2 group-hover:text-terracotta transition-colors">
+                      {article.title}
+                    </h3>
+                    {article.lead && (
+                      <p className="font-sans text-sm text-ink/60 leading-relaxed mb-3 line-clamp-3">
+                        {article.lead}
+                      </p>
+                    )}
+                    <p className="font-sans text-xs text-mute mt-auto uppercase tracking-wide">
+                      {formatDate(article.published_at ?? article.created_at)}
                     </p>
-                  )}
-                  <p className="font-sans text-xs text-mute mt-auto uppercase tracking-wide">
-                    {formatDate(article.published_at ?? article.created_at)}
-                  </p>
-                </div>
-              </Link>
+                  </div>
+                </Link>
+
+                {/* Anúncios laterais (vendidos para telas grandes) reaparecem
+                    aqui, intercalados no feed, só em telas pequenas — onde
+                    não há espaço de coluna lateral disponível. */}
+                {index === 5 && (
+                  <div key="mobile-ad-1" className="sm:col-span-2 lg:col-span-3 xl:hidden">
+                    <AdSlot id="ad-home-sidebar-left-1" minHeight="120px" />
+                  </div>
+                )}
+                {index === 11 && (
+                  <div key="mobile-ad-2" className="sm:col-span-2 lg:col-span-3 xl:hidden">
+                    <AdSlot id="ad-home-sidebar-right-1" minHeight="120px" hideCallToActionIfEmpty />
+                  </div>
+                )}
+                {index === 17 && (
+                  <div key="mobile-ad-3" className="sm:col-span-2 lg:col-span-3 xl:hidden">
+                    <AdSlot id="ad-home-sidebar-left-2" minHeight="120px" hideCallToActionIfEmpty />
+                  </div>
+                )}
+                {index === 23 && (
+                  <div key="mobile-ad-4" className="sm:col-span-2 lg:col-span-3 xl:hidden">
+                    <AdSlot id="ad-home-sidebar-right-2" minHeight="120px" hideCallToActionIfEmpty />
+                  </div>
+                )}
+              </>
             ))}
           </div>
         )}
