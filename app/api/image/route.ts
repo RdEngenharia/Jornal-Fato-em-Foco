@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
         "Content-Type": result.blob.contentType ?? "application/octet-stream",
         "X-Content-Type-Options": "nosniff",
         "Cache-Control": "private, no-cache",
+        "Access-Control-Allow-Origin": "*",
       },
     });
   } catch {

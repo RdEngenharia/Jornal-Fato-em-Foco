@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { generateInstagramCard } from "@/lib/instagram-card";
 
 const CATEGORY_HASHTAGS: Record<string, string> = {
   geral: "#PortoSeguro #CostaDoDescobrimento",
@@ -25,6 +26,8 @@ type Props = {
 export default function InstagramPostHelper({ title, lead, category, coverImageUrl }: Props) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [cardUrl, setCardUrl] = useState<string | null>(null);
+  const [cardStatus, setCardStatus] = useState<"idle" | "loading" | "error">("idle");
 
   const caption = useMemo(() => {
     const hashtags = CATEGORY_HASHTAGS[category] ?? CATEGORY_HASHTAGS.geral;
@@ -39,6 +42,33 @@ export default function InstagramPostHelper({ title, lead, category, coverImageU
     ];
     return parts.join("\n");
   }, [title, lead, category]);
+
+  // Gera o card visual (foto + título sobreposto) sempre que a imagem,
+  // título, lide ou categoria mudarem, enquanto o painel estiver aberto.
+  useEffect(() => {
+    if (!open || !coverImageUrl) {
+      setCardUrl(null);
+      return;
+    }
+
+    let cancelled = false;
+    setCardStatus("loading");
+
+    generateInstagramCard(coverImageUrl, title, lead, category)
+      .then((dataUrl) => {
+        if (!cancelled) {
+          setCardUrl(dataUrl);
+          setCardStatus("idle");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setCardStatus("error");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, coverImageUrl, title, lead, category]);
 
   async function handleCopy() {
     try {
@@ -83,19 +113,34 @@ export default function InstagramPostHelper({ title, lead, category, coverImageU
 
       {coverImageUrl ? (
         <div className="space-y-1.5">
-          <img
-            src={coverImageUrl}
-            alt="Capa para o post"
-            className="w-full aspect-square object-cover rounded-md border border-ink/10"
-          />
+          {cardStatus === "loading" && (
+            <div className="w-full aspect-square rounded-md border border-ink/10 bg-paper flex items-center justify-center">
+              <p className="font-sans text-xs text-mute">Gerando card...</p>
+            </div>
+          )}
+          {cardStatus === "error" && (
+            <div className="w-full aspect-square rounded-md border border-ink/10 bg-paper flex items-center justify-center p-4">
+              <p className="font-sans text-xs text-terracotta-dark text-center">
+                Não foi possível gerar o card automático. Use a imagem
+                original abaixo.
+              </p>
+            </div>
+          )}
+          {cardUrl && cardStatus === "idle" && (
+            <img
+              src={cardUrl}
+              alt="Card pronto para Instagram"
+              className="w-full aspect-square object-cover rounded-md border border-ink/10"
+            />
+          )}
           <a
-            href={coverImageUrl}
+            href={cardUrl ?? coverImageUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="font-sans text-xs text-terracotta hover:underline"
           >
-            Abrir imagem em nova aba (clique e arraste, ou clique com botão
-            direito → Salvar imagem)
+            Abrir imagem em nova aba (clique com botão direito → Salvar
+            imagem)
           </a>
         </div>
       ) : (
@@ -124,8 +169,8 @@ export default function InstagramPostHelper({ title, lead, category, coverImageU
       </button>
 
       <p className="font-sans text-[11px] text-mute/70">
-        Salve a imagem acima e cole junto com a legenda copiada direto no
-        app do Instagram.
+        O card já vem com o título sobreposto na imagem. Salve e cole
+        junto com a legenda copiada direto no app do Instagram.
       </p>
     </div>
   );
