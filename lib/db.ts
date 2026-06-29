@@ -460,3 +460,17 @@ export async function toggleFeaturedScore(id: number, active: boolean) {
 export async function deleteFeaturedScore(id: number) {
   await sql`DELETE FROM featured_score WHERE id = ${id};`;
 }
+
+// Cria um rascunho em branco, para matérias escritas manualmente (não
+// vindas do pipeline automatizado) — ex: cobertura de jogos, pautas
+// próprias, etc. Score de confiabilidade neutro (sem validação cruzada
+// de fontes, já que é redigido diretamente pelo editor).
+export async function createManualDraft(): Promise<number> {
+  const clusterId = `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const { rows } = await sql`
+    INSERT INTO articles (cluster_id, title, lead, body, category, reliability_score, status)
+    VALUES (${clusterId}, 'Novo rascunho', '', '', 'geral', 100, 'pending_review')
+    RETURNING id;
+  `;
+  return rows[0].id;
+}

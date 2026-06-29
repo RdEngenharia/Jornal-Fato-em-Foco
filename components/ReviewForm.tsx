@@ -22,10 +22,10 @@ type Props = {
 export default function ReviewForm({
   initialMedia,
   articleId,
-  title,
-  lead,
+  title: initialTitle,
+  lead: initialLead,
   body,
-  category,
+  category: initialCategory,
   status,
   publishAction,
   rejectAction,
@@ -33,6 +33,9 @@ export default function ReviewForm({
   rightColumnExtra,
 }: Props) {
   const [items, setItems] = useState<MediaItem[]>(initialMedia);
+  const [title, setTitle] = useState(initialTitle);
+  const [lead, setLead] = useState(initialLead);
+  const [category, setCategory] = useState(initialCategory);
 
   // A capa é sempre o primeiro item de imagem da galeria — reflete em
   // tempo real, mesmo antes de a matéria ser publicada/salva no banco.
@@ -53,13 +56,14 @@ export default function ReviewForm({
 
         <MediaGalleryField initialMedia={initialMedia} onItemsChange={setItems} />
 
-        <CategorySelectField defaultValue={category} />
+        <CategorySelectField defaultValue={category} onChange={setCategory} />
 
         <div>
           <label className="font-sans text-xs text-mute block mb-1">Título</label>
           <input
             name="title"
-            defaultValue={title}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             className="w-full font-display text-2xl font-semibold text-ink bg-white border border-ink/10 rounded-md px-4 py-3 focus:border-terracotta"
           />
         </div>
@@ -68,7 +72,8 @@ export default function ReviewForm({
           <label className="font-sans text-xs text-mute block mb-1">Lide (resumo)</label>
           <textarea
             name="lead"
-            defaultValue={lead}
+            value={lead}
+            onChange={(e) => setLead(e.target.value)}
             rows={2}
             className="w-full font-sans text-base text-ink bg-white border border-ink/10 rounded-md px-4 py-3 focus:border-terracotta resize-none"
           />

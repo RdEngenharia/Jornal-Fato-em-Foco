@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getPendingArticles } from "@/lib/db";
 import ReliabilityBadge from "@/components/ReliabilityBadge";
 import AudioUploadCard from "@/components/AudioUploadCard";
-import { cleanupOldDraftsAction } from "./actions";
+import { cleanupOldDraftsAction, createManualDraftAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -25,12 +25,22 @@ export default async function AdminHome({
               Rascunhos para revisão
             </h1>
           </div>
-          <Link
-            href="/admin/published"
-            className="font-sans text-sm text-mute hover:text-terracotta transition-colors underline"
-          >
-            Ver publicadas →
-          </Link>
+          <div className="flex items-center gap-3">
+            <form action={createManualDraftAction}>
+              <button
+                type="submit"
+                className="font-sans text-sm font-medium bg-ink text-white px-4 py-2 rounded-md hover:bg-ink/85 transition-colors"
+              >
+                + Nova matéria manual
+              </button>
+            </form>
+            <Link
+              href="/admin/published"
+              className="font-sans text-sm text-mute hover:text-terracotta transition-colors underline"
+            >
+              Ver publicadas →
+            </Link>
+          </div>
         </div>
         <div className="flex justify-end mt-1 gap-3">
           <Link

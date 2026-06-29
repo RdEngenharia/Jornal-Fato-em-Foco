@@ -13,8 +13,18 @@ const CATEGORIES = [
   { value: "turismo", label: "Turismo" },
 ];
 
-export default function CategorySelectField({ defaultValue }: { defaultValue: string }) {
+type Props = {
+  defaultValue: string;
+  onChange?: (category: string) => void;
+};
+
+export default function CategorySelectField({ defaultValue, onChange }: Props) {
   const [category, setCategory] = useState(defaultValue);
+
+  function handleChange(value: string) {
+    setCategory(value);
+    onChange?.(value);
+  }
 
   return (
     <div>
@@ -22,7 +32,7 @@ export default function CategorySelectField({ defaultValue }: { defaultValue: st
       <select
         name="category"
         value={category}
-        onChange={(e) => setCategory(e.target.value)}
+        onChange={(e) => handleChange(e.target.value)}
         className="w-full font-sans text-sm text-ink bg-white border border-ink/10 rounded-md px-4 py-2.5 focus:border-terracotta"
       >
         {CATEGORIES.map((c) => (
