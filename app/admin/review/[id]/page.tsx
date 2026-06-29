@@ -8,9 +8,7 @@ import {
 } from "@/lib/db";
 import { checkPlagiarism } from "@/lib/plagiarism-check";
 import ReliabilityBadge from "@/components/ReliabilityBadge";
-import MediaGalleryField from "@/components/MediaGalleryField";
-import CategorySelectField from "@/components/CategorySelectField";
-import InstagramPostHelper from "@/components/InstagramPostHelper";
+import ReviewForm from "@/components/ReviewForm";
 import { publishAction, rejectAction } from "@/app/admin/review/actions";
 
 export const dynamic = "force-dynamic";
@@ -59,188 +57,121 @@ export default async function ReviewPage({
           ← Voltar para a lista
         </Link>
 
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
-          {/* Coluna principal: rascunho editável */}
-          <form action={publishAction} className="space-y-5">
-            <input type="hidden" name="id" value={article.id} />
-
-            <div className="flex items-center justify-between">
-              <span className="font-sans text-xs uppercase tracking-widest text-mute">
-                Rascunho · {article.status === "pending_review" ? "pendente" : article.status}
-              </span>
-              <ReliabilityBadge score={article.reliability_score} size="lg" />
-            </div>
-
-            <MediaGalleryField
-              initialMedia={media.map((m) => ({
-                type: m.media_type,
-                url: m.url,
-                embedUrl: m.embed_url,
-              }))}
-            />
-
-            <CategorySelectField defaultValue={article.category} />
-
-            <div>
-              <label className="font-sans text-xs text-mute block mb-1">Título</label>
-              <input
-                name="title"
-                defaultValue={article.title}
-                className="w-full font-display text-2xl font-semibold text-ink bg-white border border-ink/10 rounded-md px-4 py-3 focus:border-terracotta"
-              />
-            </div>
-
-            <div>
-              <label className="font-sans text-xs text-mute block mb-1">Lide (resumo)</label>
-              <textarea
-                name="lead"
-                defaultValue={article.lead ?? ""}
-                rows={2}
-                className="w-full font-sans text-base text-ink bg-white border border-ink/10 rounded-md px-4 py-3 focus:border-terracotta resize-none"
-              />
-            </div>
-
-            <div>
-              <label className="font-sans text-xs text-mute block mb-1">
-                Corpo da matéria
-              </label>
-              <p className="font-sans text-[11px] text-mute/80 mb-2">
-                Para inserir uma imagem da galeria no meio do texto, digite{" "}
-                <code className="bg-ink/5 px-1 rounded">[IMAGEM:2]</code> no
-                ponto exato onde ela deve aparecer (o número é a posição da
-                imagem na galeria acima — a capa é a 1).
-              </p>
-              <textarea
-                name="body"
-                defaultValue={article.body}
-                rows={16}
-                className="w-full font-sans text-base text-ink bg-white border border-ink/10 rounded-md px-4 py-3 focus:border-terracotta leading-relaxed"
-              />
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <button
-                type="submit"
-                className="rounded-md bg-terracotta px-6 py-3 font-sans text-sm font-medium text-white hover:bg-terracotta-dark transition-colors"
-              >
-                Publicar
-              </button>
-              <button
-                type="submit"
-                formAction={rejectAction}
-                className="rounded-md border border-ink/15 px-6 py-3 font-sans text-sm font-medium text-ink hover:bg-ink/5 transition-colors"
-              >
-                Rejeitar
-              </button>
-            </div>
-          </form>
-
-          {/* Coluna lateral: fontes cruzadas e raciocínio da validação */}
-          <aside className="space-y-6">
-            <InstagramPostHelper
-              title={article.title}
-              lead={article.lead ?? ""}
-              category={article.category}
-              coverImageUrl={media.find((m) => m.media_type === "image")?.url}
-            />
-
-            <section className={`rounded-lg border border-ink/10 p-5 ${riskStyle.bg}`}>
-              <h3 className="font-sans text-xs uppercase tracking-widest text-mute mb-2">
-                Similaridade com a fonte
-              </h3>
-              <p className={`font-display text-2xl font-bold ${riskStyle.text}`}>
-                {plagiarism.matchPercentage}%
-              </p>
-              <p className={`font-sans text-sm font-medium mt-1 ${riskStyle.text}`}>
-                {riskStyle.label}
-              </p>
-              <p className="font-sans text-xs text-mute mt-2 leading-relaxed">
-                Mede quanto do texto gerado contém sequências de 8+ palavras
-                idênticas ao resumo da fonte original. Compara só com o
-                resumo (RSS), não com o artigo completo da fonte.
-              </p>
-              {plagiarism.matchedPhrases.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-ink/10">
-                  <p className="font-sans text-xs font-medium text-ink mb-1">
-                    Trechos repetidos encontrados:
-                  </p>
-                  <ul className="space-y-1">
-                    {plagiarism.matchedPhrases.map((phrase, i) => (
-                      <li key={i} className="font-sans text-xs text-ink/70 italic">
-                        &quot;...{phrase}...&quot;
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </section>
-
-            <section className="rounded-lg border border-ink/10 bg-white p-5">
-              <h3 className="font-sans text-xs uppercase tracking-widest text-mute mb-3">
-                Fontes cruzadas ({sources.length})
-              </h3>
-              <ul className="space-y-3">
-                {sources.map((s) => (
-                  <li key={s.id} className="text-sm">
-                    <p className="font-sans font-medium text-ink">{s.source_name}</p>
-                    <p className="font-sans text-xs text-mute">
-                      {SOURCE_TYPE_LABEL[s.source_type] ?? s.source_type}
-                    </p>
-                    <a
-                      href={s.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-sans text-xs text-terracotta hover:underline break-all"
-                    >
-                      {s.url}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            {validation && (
-              <section className="rounded-lg border border-ink/10 bg-white p-5">
-                <h3 className="font-sans text-xs uppercase tracking-widest text-mute mb-3">
-                  Raciocínio da validação
+        <ReviewForm
+          articleId={article.id}
+          title={article.title}
+          lead={article.lead ?? ""}
+          body={article.body}
+          category={article.category}
+          status={article.status}
+          publishAction={publishAction}
+          rejectAction={rejectAction}
+          reliabilityBadge={<ReliabilityBadge score={article.reliability_score} size="lg" />}
+          initialMedia={media.map((m) => ({
+            type: m.media_type,
+            url: m.url,
+            embedUrl: m.embed_url,
+          }))}
+          rightColumnExtra={
+            <>
+              <section className={`rounded-lg border border-ink/10 p-5 ${riskStyle.bg}`}>
+                <h3 className="font-sans text-xs uppercase tracking-widest text-mute mb-2">
+                  Similaridade com a fonte
                 </h3>
-                <dl className="space-y-2 font-sans text-sm">
-                  <div className="flex justify-between">
-                    <dt className="text-mute">Score por regras</dt>
-                    <dd className="text-ink font-medium">{validation.rule_based_score}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-mute">Score do classificador IA</dt>
-                    <dd className="text-ink font-medium">{validation.llm_score}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-mute">Confiança</dt>
-                    <dd className="text-ink font-medium capitalize">{validation.confidence}</dd>
-                  </div>
-                </dl>
-                {validation.reasoning && (
-                  <p className="font-sans text-sm text-ink/80 mt-3 leading-relaxed">
-                    {validation.reasoning}
-                  </p>
-                )}
-                {validation.contradictions?.length > 0 && (
-                  <div className="mt-3">
-                    <p className="font-sans text-xs text-terracotta font-medium mb-1">
-                      Contradições encontradas
+                <p className={`font-display text-2xl font-bold ${riskStyle.text}`}>
+                  {plagiarism.matchPercentage}%
+                </p>
+                <p className={`font-sans text-sm font-medium mt-1 ${riskStyle.text}`}>
+                  {riskStyle.label}
+                </p>
+                <p className="font-sans text-xs text-mute mt-2 leading-relaxed">
+                  Mede quanto do texto gerado contém sequências de 8+ palavras
+                  idênticas ao resumo da fonte original. Compara só com o
+                  resumo (RSS), não com o artigo completo da fonte.
+                </p>
+                {plagiarism.matchedPhrases.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-ink/10">
+                    <p className="font-sans text-xs font-medium text-ink mb-1">
+                      Trechos repetidos encontrados:
                     </p>
-                    <ul className="list-disc list-inside space-y-1">
-                      {validation.contradictions.map((c, i) => (
-                        <li key={i} className="font-sans text-xs text-ink/70">
-                          {c}
+                    <ul className="space-y-1">
+                      {plagiarism.matchedPhrases.map((phrase, i) => (
+                        <li key={i} className="font-sans text-xs text-ink/70 italic">
+                          &quot;...{phrase}...&quot;
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
               </section>
-            )}
-          </aside>
-        </div>
+
+              <section className="rounded-lg border border-ink/10 bg-white p-5">
+                <h3 className="font-sans text-xs uppercase tracking-widest text-mute mb-3">
+                  Fontes cruzadas ({sources.length})
+                </h3>
+                <ul className="space-y-3">
+                  {sources.map((s) => (
+                    <li key={s.id} className="text-sm">
+                      <p className="font-sans font-medium text-ink">{s.source_name}</p>
+                      <p className="font-sans text-xs text-mute">
+                        {SOURCE_TYPE_LABEL[s.source_type] ?? s.source_type}
+                      </p>
+                      <a
+                        href={s.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-sans text-xs text-terracotta hover:underline break-all"
+                      >
+                        {s.url}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+
+              {validation && (
+                <section className="rounded-lg border border-ink/10 bg-white p-5">
+                  <h3 className="font-sans text-xs uppercase tracking-widest text-mute mb-3">
+                    Raciocínio da validação
+                  </h3>
+                  <dl className="space-y-2 font-sans text-sm">
+                    <div className="flex justify-between">
+                      <dt className="text-mute">Score por regras</dt>
+                      <dd className="text-ink font-medium">{validation.rule_based_score}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-mute">Score do classificador IA</dt>
+                      <dd className="text-ink font-medium">{validation.llm_score}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-mute">Confiança</dt>
+                      <dd className="text-ink font-medium capitalize">{validation.confidence}</dd>
+                    </div>
+                  </dl>
+                  {validation.reasoning && (
+                    <p className="font-sans text-sm text-ink/80 mt-3 leading-relaxed">
+                      {validation.reasoning}
+                    </p>
+                  )}
+                  {validation.contradictions?.length > 0 && (
+                    <div className="mt-3">
+                      <p className="font-sans text-xs text-terracotta font-medium mb-1">
+                        Contradições encontradas
+                      </p>
+                      <ul className="list-disc list-inside space-y-1">
+                        {validation.contradictions.map((c, i) => (
+                          <li key={i} className="font-sans text-xs text-ink/70">
+                            {c}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </section>
+              )}
+            </>
+          }
+        />
       </div>
     </main>
   );

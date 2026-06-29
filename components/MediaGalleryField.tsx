@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { applyWatermark, applyBlur } from "@/lib/image-processing";
 
 export type MediaItem = {
@@ -15,9 +15,14 @@ export type MediaItem = {
 
 type Props = {
   initialMedia?: MediaItem[];
+  /** Chamado sempre que a lista de itens mudar (upload, remoção,
+   * reordenação) — permite que um componente pai (ex: o helper de post
+   * do Instagram) reflita a galeria em tempo real, antes mesmo de
+   * publicar a matéria. */
+  onItemsChange?: (items: MediaItem[]) => void;
 };
 
-export default function MediaGalleryField({ initialMedia = [] }: Props) {
+export default function MediaGalleryField({ initialMedia = [], onItemsChange }: Props) {
   const [items, setItems] = useState<MediaItem[]>(initialMedia);
   const [uploadingCount, setUploadingCount] = useState(0);
   const [videoInput, setVideoInput] = useState("");
@@ -26,6 +31,14 @@ export default function MediaGalleryField({ initialMedia = [] }: Props) {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [watermarkEnabled, setWatermarkEnabled] = useState(true);
   const [processingIndex, setProcessingIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    onItemsChange?.(items);
+    // onItemsChange não deve disparar o efeito de novo só por mudar de
+    // referência entre renders do pai — só queremos reagir a mudanças
+    // reais em items.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items]);
 
   async function handleCopyMarker(imagePosition: number) {
     const marker = `[IMAGEM:${imagePosition}]`;
