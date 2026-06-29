@@ -6,6 +6,7 @@ const CATEGORIES = [
   { value: "politica", label: "Política" },
   { value: "negocios", label: "Negócios" },
   { value: "policia", label: "Polícia" },
+  { value: "justica", label: "Justiça" },
   { value: "cultura", label: "Cultura" },
   { value: "esporte", label: "Esporte" },
   { value: "saude", label: "Saúde" },

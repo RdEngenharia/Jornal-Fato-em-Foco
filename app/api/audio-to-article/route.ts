@@ -4,7 +4,7 @@ import { sql } from "@vercel/postgres";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-const VALID_CATEGORIES = ["geral", "politica", "negocios", "policia", "cultura", "esporte", "saude", "turismo"];
+const VALID_CATEGORIES = ["geral", "politica", "justica", "negocios", "policia", "cultura", "esporte", "saude", "turismo"];
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();

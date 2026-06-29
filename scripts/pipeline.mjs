@@ -373,7 +373,7 @@ Responda no formato exato:
 // ----------------------------------------------------------------
 // 5) REDATOR — gera a matéria no tom do "jornal", com atribuição
 // ----------------------------------------------------------------
-const VALID_CATEGORIES = ["geral", "politica", "negocios", "policia", "cultura", "esporte", "saude", "turismo"];
+const VALID_CATEGORIES = ["geral", "politica", "justica", "negocios", "policia", "cultura", "esporte", "saude", "turismo"];
 
 async function writeArticle(cluster) {
   const sourcesText = cluster
@@ -394,6 +394,8 @@ CRITÉRIO EDITORIAL SOBRE POLÍTICA: este jornal publica política e eleições,
 - Se as fontes forem sobre política nacional SEM relevância direta para o leitor local, responda apenas com {"skip": true} e nada mais.
 
 CRITÉRIO EDITORIAL SOBRE CONCURSOS PÚBLICOS E EDITAIS: notícias do Governo do Estado da Bahia sobre autorização, abertura, ou retomada de concurso público (qualquer órgão estadual) são SEMPRE relevantes para este jornal, mesmo sem menção direta à região — vagas de concurso estadual podem ser disputadas por qualquer morador da Bahia, incluindo o extremo sul. Use categoria "geral" ou "negocios" para esse tipo de matéria, e inclua no corpo, quando disponível na fonte: órgão responsável, número de vagas, cargo, e se há data prevista para o edital.
+
+CRITÉRIO SOBRE A CATEGORIA "justica" x "politica": use "justica" para matérias cujo fato central é uma decisão judicial, processo, julgamento, ou ato de um órgão do Poder Judiciário (STF, STJ, TJ-BA, varas federais/estaduais, Ministério Público) — por exemplo, decisões sobre disputas de terra, ordens de desocupação, sentenças, prisões decretadas pela Justiça. Use "politica" para matérias sobre atuação de políticos eleitos, partidos, eleições, e atos do Poder Executivo ou Legislativo (prefeito, câmara, governo do estado, congresso). Uma notícia pode envolver os dois poderes — nesse caso, classifique pelo fato central da matéria (ex: "STF suspende decisão sobre terra indígena" é "justica", mesmo envolvendo um tema com repercussão política).
 
 Fontes:
 ${sourcesText}

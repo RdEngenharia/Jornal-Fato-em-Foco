@@ -8,6 +8,7 @@ const CATEGORY_HASHTAGS: Record<string, string> = {
   politica: "#PortoSeguro #Política #Bahia",
   negocios: "#PortoSeguro #Negócios #Bahia",
   policia: "#PortoSeguro #SegurançaPública #Bahia",
+  justica: "#PortoSeguro #Justiça #Bahia",
   cultura: "#PortoSeguro #Cultura #CostaDoDescobrimento",
   esporte: "#PortoSeguro #Esporte #Bahia",
   saude: "#PortoSeguro #Saúde #Bahia",

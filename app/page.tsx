@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 const CATEGORY_COLORS: Record<string, string> = {
   geral: "#C1502E",
   policia: "#8F3A1F",
+  justica: "#5C7A5E",
   politica: "#2E4F6B",
   cultura: "#8B5FA6",
   esporte: "#2E7D5C",
