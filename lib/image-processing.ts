@@ -102,12 +102,12 @@ export async function applyBlur(file: File): Promise<File> {
   return canvasToFile(canvas, file);
 }
 
-function loadImage(file: File): Promise<HTMLImageElement> {
+function loadImage(source: File | string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = reject;
-    img.src = URL.createObjectURL(file);
+    img.src = typeof source === "string" ? source : URL.createObjectURL(source);
   });
 }
 
