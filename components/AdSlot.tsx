@@ -1,8 +1,9 @@
 // Espaço de publicidade. Busca automaticamente um anúncio vendido
 // diretamente (cadastrado em /admin/anuncios) para este slot — se não
-// houver nenhum ativo, mostra um placeholder discreto no lugar.
+// houver nenhum ativo, mostra um convite clicável para futuros
+// anunciantes, em vez de um placeholder vazio.
 import Link from "next/link";
-import { getActiveAdForSlot, type Advertisement } from "@/lib/db";
+import { getActiveAdForSlot, getWhatsAppNumber, type Advertisement } from "@/lib/db";
 
 type AdSlotProps = {
   id: string;
@@ -38,7 +39,7 @@ function AdContent({ ad, height }: { ad: Advertisement; height: string }) {
   );
 }
 
-export default async function AdSlot({ id, label = "Publicidade", minHeight = "100px" }: AdSlotProps) {
+export default async function AdSlot({ id, minHeight = "100px" }: AdSlotProps) {
   const ad = await getActiveAdForSlot(id);
 
   if (ad && ad.link_url) {
@@ -63,14 +64,29 @@ export default async function AdSlot({ id, label = "Publicidade", minHeight = "1
     );
   }
 
+  // Nenhum anúncio ativo para este slot: convite clicável para
+  // potenciais anunciantes, em vez de um espaço vazio.
+  const whatsappNumber = await getWhatsAppNumber();
+  const message = encodeURIComponent(
+    "Olá! Vi o espaço de publicidade no Fato em Foco e quero saber mais sobre como anunciar."
+  );
+
   return (
-    <div
+    <Link
+      href={`https://wa.me/${whatsappNumber}?text=${message}`}
+      target="_blank"
+      rel="noopener noreferrer"
       id={id}
       data-ad-slot={id}
-      className="flex items-center justify-center border border-dashed border-mute/20 rounded-lg text-mute/60 text-[10px] font-sans uppercase tracking-widest"
+      className="flex flex-col items-center justify-center gap-1 border border-dashed border-terracotta/30 rounded-lg text-center hover:border-terracotta/60 hover:bg-terracotta/5 transition-colors"
       style={{ height: minHeight }}
     >
-      {label}
-    </div>
+      <span className="font-sans text-xs font-semibold text-terracotta uppercase tracking-wide">
+        Anuncie Aqui
+      </span>
+      <span className="font-sans text-[10px] text-mute px-2">
+        Fale com a gente no WhatsApp
+      </span>
+    </Link>
   );
 }
