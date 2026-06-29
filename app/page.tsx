@@ -88,7 +88,7 @@ export default async function PublicHome({
       </div>
 
       <div className="mx-auto max-w-6xl px-5 pt-5">
-        <AdSlot id="ad-home-top" minHeight="90px" />
+        <AdSlot id="ad-home-top" minHeight="70px" />
       </div>
 
       {/* Layout de 3 colunas em telas extra grandes: anúncio | conteúdo | anúncio.
@@ -96,8 +96,8 @@ export default async function PublicHome({
       <div className="mx-auto max-w-[1600px] px-5 py-8 sm:px-10 grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)_220px] gap-8">
         <aside className="hidden xl:block">
           <div className="sticky top-24 space-y-4">
-            <AdSlot id="ad-home-sidebar-left-1" minHeight="240px" />
-            <AdSlot id="ad-home-sidebar-left-2" minHeight="240px" />
+            <AdSlot id="ad-home-sidebar-left-1" minHeight="160px" />
+            <AdSlot id="ad-home-sidebar-left-2" minHeight="160px" />
           </div>
         </aside>
 
@@ -202,8 +202,8 @@ export default async function PublicHome({
 
         <aside className="hidden xl:block">
           <div className="sticky top-24 space-y-4">
-            <AdSlot id="ad-home-sidebar-right-1" minHeight="240px" />
-            <AdSlot id="ad-home-sidebar-right-2" minHeight="240px" />
+            <AdSlot id="ad-home-sidebar-right-1" minHeight="160px" />
+            <AdSlot id="ad-home-sidebar-right-2" minHeight="160px" />
           </div>
         </aside>
       </div>
@@ -212,7 +212,7 @@ export default async function PublicHome({
         <div className="mx-auto max-w-6xl">
           <WhatsAppTipBanner />
           <div className="mt-6">
-            <AdSlot id="ad-home-footer" minHeight="90px" />
+            <AdSlot id="ad-home-footer" minHeight="70px" />
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6">
             <p className="font-sans text-xs text-mute">

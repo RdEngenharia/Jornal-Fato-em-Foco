@@ -1,7 +1,17 @@
-const WHATSAPP_NUMBER = "5573991317853";
-const WHATSAPP_DISPLAY = "(73) 99131-7853";
+import { getWhatsAppNumber } from "@/lib/db";
 
-export default function WhatsAppTipBanner() {
+function formatDisplay(digits: string): string {
+  const withoutCountry = digits.startsWith("55") ? digits.slice(2) : digits;
+  const ddd = withoutCountry.slice(0, 2);
+  const rest = withoutCountry.slice(2);
+  return rest.length === 9
+    ? `(${ddd}) ${rest.slice(0, 5)}-${rest.slice(5)}`
+    : `(${ddd}) ${rest.slice(0, 4)}-${rest.slice(4)}`;
+}
+
+export default async function WhatsAppTipBanner() {
+  const whatsappNumber = await getWhatsAppNumber();
+
   return (
     <div className="rounded-xl bg-ink text-white px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
       <div className="flex items-center gap-2 shrink-0">
@@ -15,12 +25,12 @@ export default function WhatsAppTipBanner() {
         antes de qualquer publicação.
       </p>
       <a
-        href={`https://wa.me/${WHATSAPP_NUMBER}`}
+        href={`https://wa.me/${whatsappNumber}`}
         target="_blank"
         rel="noopener noreferrer"
         className="font-sans text-sm font-medium bg-sage text-white px-4 py-2 rounded-md hover:bg-sage/90 transition-colors shrink-0 text-center"
       >
-        {WHATSAPP_DISPLAY}
+        {formatDisplay(whatsappNumber)}
       </a>
     </div>
   );

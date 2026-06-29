@@ -27,7 +27,13 @@ export default async function AdminHome() {
             Ver publicadas →
           </Link>
         </div>
-        <div className="flex justify-end mt-1">
+        <div className="flex justify-end mt-1 gap-3">
+          <Link
+            href="/admin/configuracoes"
+            className="font-sans text-xs text-mute hover:text-terracotta transition-colors underline"
+          >
+            Configurações
+          </Link>
           <Link
             href="/admin/anuncios"
             className="font-sans text-xs text-mute hover:text-terracotta transition-colors underline"

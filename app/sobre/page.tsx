@@ -1,8 +1,16 @@
 import Link from "next/link";
+import { getWhatsAppNumber } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-export default function SobrePage() {
+export default async function SobrePage() {
+  const whatsappNumber = await getWhatsAppNumber();
+  const withoutCountry = whatsappNumber.startsWith("55") ? whatsappNumber.slice(2) : whatsappNumber;
+  const ddd = withoutCountry.slice(0, 2);
+  const rest = withoutCountry.slice(2);
+  const whatsappDisplay =
+    rest.length === 9 ? `(${ddd}) ${rest.slice(0, 5)}-${rest.slice(5)}` : `(${ddd}) ${rest.slice(0, 4)}-${rest.slice(4)}`;
+
   return (
     <main className="min-h-screen bg-paper">
       <header className="sticky top-0 z-10 bg-paper/95 backdrop-blur-sm border-b border-ink/10 px-5 py-4 sm:px-10">
@@ -92,12 +100,12 @@ export default function SobrePage() {
                 rodrigues.solar@hotmail.com
               </a>
               <a
-                href="https://wa.me/5573991317853"
+                href={`https://wa.me/${whatsappNumber}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-terracotta hover:underline font-medium block"
               >
-                WhatsApp: (73) 99131-7853
+                WhatsApp: {whatsappDisplay}
               </a>
             </p>
           </section>

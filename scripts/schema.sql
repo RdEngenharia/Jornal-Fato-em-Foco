@@ -83,3 +83,12 @@ CREATE TABLE IF NOT EXISTS advertisements (
 );
 
 CREATE INDEX IF NOT EXISTS idx_advertisements_active ON advertisements(active);
+
+-- Configurações gerais do site, editáveis pelo painel admin (em vez de
+-- hardcoded no código). Tabela de chave-valor simples, uma linha por
+-- configuração.
+CREATE TABLE IF NOT EXISTS site_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

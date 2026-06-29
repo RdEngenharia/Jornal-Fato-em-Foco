@@ -339,3 +339,25 @@ export async function getAdvertisementById(id: number): Promise<Advertisement | 
 export async function deleteAdvertisement(id: number) {
   await sql`DELETE FROM advertisements WHERE id = ${id};`;
 }
+
+// Configurações gerais do site (chave-valor), editáveis pelo painel.
+export async function getSetting(key: string): Promise<string | null> {
+  const { rows } = await sql<{ value: string }>`
+    SELECT value FROM site_settings WHERE key = ${key};
+  `;
+  return rows[0]?.value ?? null;
+}
+
+export async function setSetting(key: string, value: string) {
+  await sql`
+    INSERT INTO site_settings (key, value, updated_at)
+    VALUES (${key}, ${value}, now())
+    ON CONFLICT (key) DO UPDATE SET value = ${value}, updated_at = now();
+  `;
+}
+
+export async function getWhatsAppNumber(): Promise<string> {
+  // Fallback para o número original, caso a configuração ainda não
+  // tenha sido criada (ex: banco recém-migrado).
+  return (await getSetting("whatsapp_number")) ?? "5573991317853";
+}
