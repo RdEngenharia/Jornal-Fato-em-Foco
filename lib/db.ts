@@ -142,7 +142,7 @@ export async function publishArticle(
         category = ${category},
         status = 'published',
         reviewed_at = now(),
-        published_at = now()
+        published_at = COALESCE(published_at, now())
     WHERE id = ${id};
   `;
 
