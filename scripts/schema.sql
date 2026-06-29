@@ -93,3 +93,21 @@ CREATE TABLE IF NOT EXISTS site_settings (
   value TEXT NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Card de placar em destaque, exibido no cabeçalho do site quando ativo.
+-- Atualizado manualmente pelo painel admin (não há integração com API
+-- de resultados esportivos) — pensado para jogos pontuais relevantes
+-- para a região (seleção brasileira, Copa do Mundo, etc), não para
+-- cobertura esportiva completa.
+CREATE TABLE IF NOT EXISTS featured_score (
+  id SERIAL PRIMARY KEY,
+  competition TEXT,                 -- ex: "Copa do Mundo 2026", opcional
+  team_home TEXT NOT NULL,
+  team_away TEXT NOT NULL,
+  score_home INTEGER,               -- nulo = jogo ainda não começou
+  score_away INTEGER,
+  status TEXT NOT NULL DEFAULT 'scheduled', -- 'scheduled' | 'live' | 'finished'
+  match_time TEXT,                  -- texto livre, ex: "Hoje, 16h" ou "2º tempo"
+  active BOOLEAN NOT NULL DEFAULT true,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

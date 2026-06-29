@@ -45,6 +45,12 @@ export default async function AdminHome({
           >
             Gerenciar anúncios
           </Link>
+          <Link
+            href="/admin/placar"
+            className="font-sans text-xs text-mute hover:text-terracotta transition-colors underline"
+          >
+            Placar em destaque
+          </Link>
         </div>
         <p className="font-sans text-sm text-mute mt-2">
           {articles.length === 0

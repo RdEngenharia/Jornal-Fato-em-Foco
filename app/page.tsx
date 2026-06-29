@@ -5,6 +5,7 @@ import AdSlot from "@/components/AdSlot";
 import WhatsAppTipBanner from "@/components/WhatsAppTipBanner";
 import LastUpdatedBadge from "@/components/LastUpdatedBadge";
 import Pagination from "@/components/Pagination";
+import FeaturedScoreCard from "@/components/FeaturedScoreCard";
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +69,7 @@ export default async function PublicHome({
 
   return (
     <main className="min-h-screen bg-paper">
+      <FeaturedScoreCard />
       <header className="sticky top-0 z-10 bg-paper/95 backdrop-blur-sm border-b border-ink/10 px-5 py-4 sm:px-10">
         <div className="mx-auto max-w-6xl flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">

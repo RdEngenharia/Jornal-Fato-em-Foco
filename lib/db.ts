@@ -380,3 +380,83 @@ export async function getWhatsAppNumber(): Promise<string> {
   // tenha sido criada (ex: banco recém-migrado).
   return (await getSetting("whatsapp_number")) ?? "5573991317853";
 }
+
+export type FeaturedScore = {
+  id: number;
+  competition: string | null;
+  team_home: string;
+  team_away: string;
+  score_home: number | null;
+  score_away: number | null;
+  status: "scheduled" | "live" | "finished";
+  match_time: string | null;
+  active: boolean;
+  updated_at: string;
+};
+
+// Retorna o placar ativo mais recente, se houver — usado pelo card do
+// cabeçalho no site público.
+export async function getActiveFeaturedScore(): Promise<FeaturedScore | null> {
+  const { rows } = await sql<FeaturedScore>`
+    SELECT * FROM featured_score WHERE active = true ORDER BY updated_at DESC LIMIT 1;
+  `;
+  return rows[0] ?? null;
+}
+
+export async function getAllFeaturedScores(): Promise<FeaturedScore[]> {
+  const { rows } = await sql<FeaturedScore>`
+    SELECT * FROM featured_score ORDER BY updated_at DESC;
+  `;
+  return rows;
+}
+
+export async function createFeaturedScore(input: {
+  competition?: string | null;
+  teamHome: string;
+  teamAway: string;
+  scoreHome?: number | null;
+  scoreAway?: number | null;
+  status: "scheduled" | "live" | "finished";
+  matchTime?: string | null;
+}): Promise<number> {
+  const { rows } = await sql`
+    INSERT INTO featured_score (competition, team_home, team_away, score_home, score_away, status, match_time)
+    VALUES (${input.competition ?? null}, ${input.teamHome}, ${input.teamAway}, ${input.scoreHome ?? null}, ${input.scoreAway ?? null}, ${input.status}, ${input.matchTime ?? null})
+    RETURNING id;
+  `;
+  return rows[0].id;
+}
+
+export async function updateFeaturedScore(
+  id: number,
+  input: {
+    competition?: string | null;
+    teamHome: string;
+    teamAway: string;
+    scoreHome?: number | null;
+    scoreAway?: number | null;
+    status: "scheduled" | "live" | "finished";
+    matchTime?: string | null;
+  }
+) {
+  await sql`
+    UPDATE featured_score
+    SET competition = ${input.competition ?? null},
+        team_home = ${input.teamHome},
+        team_away = ${input.teamAway},
+        score_home = ${input.scoreHome ?? null},
+        score_away = ${input.scoreAway ?? null},
+        status = ${input.status},
+        match_time = ${input.matchTime ?? null},
+        updated_at = now()
+    WHERE id = ${id};
+  `;
+}
+
+export async function toggleFeaturedScore(id: number, active: boolean) {
+  await sql`UPDATE featured_score SET active = ${active}, updated_at = now() WHERE id = ${id};`;
+}
+
+export async function deleteFeaturedScore(id: number) {
+  await sql`DELETE FROM featured_score WHERE id = ${id};`;
+}
