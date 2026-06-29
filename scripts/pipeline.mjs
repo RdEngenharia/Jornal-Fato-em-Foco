@@ -208,6 +208,21 @@ function textMatchesAny(text, keywords) {
   });
 }
 
+// Descarta itens cuja data de publicação original seja mais antiga que
+// o limite — protege contra feeds que, por bug ou republicação, ainda
+// listam notícias velhas (ex: um item de abril aparecendo num feed em
+// junho). Itens sem data parseável (NaN) são deixados passar, para não
+// perder conteúdo legítimo por falha de parsing de data.
+const MAX_AGE_DAYS = 7;
+
+function isRecentEnough(item) {
+  const published = new Date(item.publishedAt ?? item.pubDate);
+  if (Number.isNaN(published.getTime())) return true; // data inválida: não descarta por idade
+
+  const ageInDays = (Date.now() - published.getTime()) / (1000 * 60 * 60 * 24);
+  return ageInDays <= MAX_AGE_DAYS;
+}
+
 // Filtro só geográfico aqui — decisão sobre política nacional x local x
 // relevante fica a cargo do Redator (julgamento mais sutil, ver prompt
 // de writeArticle), não de uma lista fixa de palavras.
@@ -465,9 +480,15 @@ async function main() {
   const items = await collectFeeds();
   console.log(`   ${items.length} itens coletados.`);
 
+  console.log(`📅 Descartando itens com mais de ${MAX_AGE_DAYS} dias...`);
+  const recentItems = items.filter(isRecentEnough);
+  if (recentItems.length < items.length) {
+    console.log(`   ${items.length - recentItems.length} item(ns) antigo(s) descartado(s).`);
+  }
+
   console.log("🧭 Filtrando por relevância (região + exclusão de política)...");
-  const relevantItems = items.filter(isRelevant);
-  console.log(`   ${relevantItems.length} de ${items.length} itens são relevantes.`);
+  const relevantItems = recentItems.filter(isRelevant);
+  console.log(`   ${relevantItems.length} de ${recentItems.length} itens são relevantes.`);
 
   console.log("🧩 Agrupando por evento...");
   const clusters = clusterItems(relevantItems);
