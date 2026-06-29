@@ -10,6 +10,7 @@ import { checkPlagiarism } from "@/lib/plagiarism-check";
 import ReliabilityBadge from "@/components/ReliabilityBadge";
 import MediaGalleryField from "@/components/MediaGalleryField";
 import CategorySelectField from "@/components/CategorySelectField";
+import InstagramPostHelper from "@/components/InstagramPostHelper";
 import { publishAction, rejectAction } from "@/app/admin/review/actions";
 
 export const dynamic = "force-dynamic";
@@ -136,6 +137,13 @@ export default async function ReviewPage({
 
           {/* Coluna lateral: fontes cruzadas e raciocínio da validação */}
           <aside className="space-y-6">
+            <InstagramPostHelper
+              title={article.title}
+              lead={article.lead ?? ""}
+              category={article.category}
+              coverImageUrl={media.find((m) => m.media_type === "image")?.url}
+            />
+
             <section className={`rounded-lg border border-ink/10 p-5 ${riskStyle.bg}`}>
               <h3 className="font-sans text-xs uppercase tracking-widest text-mute mb-2">
                 Similaridade com a fonte
