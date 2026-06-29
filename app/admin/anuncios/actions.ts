@@ -20,6 +20,7 @@ export async function createAdAction(formData: FormData) {
   const description = String(formData.get("description") || "").trim() || null;
   const imageUrl = String(formData.get("imageUrl"));
   const linkUrl = String(formData.get("linkUrl") || "").trim() || null;
+  const fitMode = formData.get("fitMode") === "contain" ? "contain" : "cover";
   const slotIds = ALL_SLOTS.filter((slot) => formData.get(`slot_${slot}`) === "on");
 
   const startsAtRaw = String(formData.get("startsAt") || "");
@@ -34,7 +35,7 @@ export async function createAdAction(formData: FormData) {
     redirect("/admin/anuncios?error=campos_obrigatorios");
   }
 
-  await createAdvertisement({ advertiserName, description, imageUrl, linkUrl, slotIds, startsAt, endsAt });
+  await createAdvertisement({ advertiserName, description, imageUrl, linkUrl, fitMode, slotIds, startsAt, endsAt });
   revalidatePath("/");
   revalidatePath("/admin/anuncios");
   redirect("/admin/anuncios?created=1");
@@ -46,6 +47,7 @@ export async function updateAdAction(formData: FormData) {
   const description = String(formData.get("description") || "").trim() || null;
   const imageUrl = String(formData.get("imageUrl"));
   const linkUrl = String(formData.get("linkUrl") || "").trim() || null;
+  const fitMode = formData.get("fitMode") === "contain" ? "contain" : "cover";
   const slotIds = ALL_SLOTS.filter((slot) => formData.get(`slot_${slot}`) === "on");
 
   const startsAtRaw = String(formData.get("startsAt") || "");
@@ -57,7 +59,7 @@ export async function updateAdAction(formData: FormData) {
     redirect(`/admin/anuncios/${id}?error=campos_obrigatorios`);
   }
 
-  await updateAdvertisement(id, { advertiserName, description, imageUrl, linkUrl, slotIds, startsAt, endsAt });
+  await updateAdvertisement(id, { advertiserName, description, imageUrl, linkUrl, fitMode, slotIds, startsAt, endsAt });
   revalidatePath("/");
   revalidatePath("/admin/anuncios");
   redirect("/admin/anuncios?updated=1");

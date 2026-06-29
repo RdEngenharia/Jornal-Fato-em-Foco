@@ -241,6 +241,7 @@ export type Advertisement = {
   description: string | null;
   image_url: string;
   link_url: string | null;
+  fit_mode: "cover" | "contain";
   slot_ids: string[];
   active: boolean;
   starts_at: string | null;
@@ -276,19 +277,21 @@ export async function createAdvertisement(input: {
   description?: string | null;
   imageUrl: string;
   linkUrl?: string | null;
+  fitMode?: "cover" | "contain";
   slotIds: string[];
   startsAt?: string | null;
   endsAt?: string | null;
 }): Promise<number> {
   const { rows } = await sql.query(
-    `INSERT INTO advertisements (advertiser_name, description, image_url, link_url, slot_ids, starts_at, ends_at)
-     VALUES ($1, $2, $3, $4, $5::text[], $6, $7)
+    `INSERT INTO advertisements (advertiser_name, description, image_url, link_url, fit_mode, slot_ids, starts_at, ends_at)
+     VALUES ($1, $2, $3, $4, $5, $6::text[], $7, $8)
      RETURNING id;`,
     [
       input.advertiserName,
       input.description ?? null,
       input.imageUrl,
       input.linkUrl ?? null,
+      input.fitMode ?? "cover",
       input.slotIds,
       input.startsAt ?? null,
       input.endsAt ?? null,
@@ -308,6 +311,7 @@ export async function updateAdvertisement(
     description?: string | null;
     imageUrl: string;
     linkUrl?: string | null;
+    fitMode?: "cover" | "contain";
     slotIds: string[];
     startsAt?: string | null;
     endsAt?: string | null;
@@ -316,13 +320,14 @@ export async function updateAdvertisement(
   await sql.query(
     `UPDATE advertisements
      SET advertiser_name = $1, description = $2, image_url = $3, link_url = $4,
-         slot_ids = $5::text[], starts_at = $6, ends_at = $7
-     WHERE id = $8;`,
+         fit_mode = $5, slot_ids = $6::text[], starts_at = $7, ends_at = $8
+     WHERE id = $9;`,
     [
       input.advertiserName,
       input.description ?? null,
       input.imageUrl,
       input.linkUrl ?? null,
+      input.fitMode ?? "cover",
       input.slotIds,
       input.startsAt ?? null,
       input.endsAt ?? null,

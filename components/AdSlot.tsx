@@ -14,13 +14,16 @@ type AdSlotProps = {
 };
 
 function AdContent({ ad, height }: { ad: Advertisement; height: string }) {
+  const objectFitClass = ad.fit_mode === "contain" ? "object-contain" : "object-cover";
+  const bgClass = ad.fit_mode === "contain" ? "bg-paper" : "";
+
   return (
     <>
-      <div className="relative w-full" style={{ height }}>
+      <div className={`relative w-full ${bgClass}`} style={{ height }}>
         <img
           src={ad.image_url}
           alt={ad.advertiser_name}
-          className="absolute inset-0 w-full h-full object-cover"
+          className={`absolute inset-0 w-full h-full ${objectFitClass}`}
         />
         <span className="absolute top-1.5 right-1.5 bg-ink/70 text-white text-[9px] font-sans px-1.5 py-0.5 rounded uppercase tracking-wide">
           Publicidade

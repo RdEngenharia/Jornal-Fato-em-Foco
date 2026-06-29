@@ -53,6 +53,7 @@ export default function NewAdForm({ existingAd }: Props) {
   const [selectedSlots, setSelectedSlots] = useState<string[]>(
     existingAd?.slot_ids ?? (PLANS.destaque.slots as unknown as string[])
   );
+  const [fitMode, setFitMode] = useState<"cover" | "contain">(existingAd?.fit_mode ?? "cover");
 
   function handlePlanChange(newPlan: PlanKey) {
     setPlan(newPlan);
@@ -204,6 +205,45 @@ export default function NewAdForm({ existingAd }: Props) {
         {uploadError && (
           <p className="font-sans text-xs text-terracotta-dark mt-1">{uploadError}</p>
         )}
+      </div>
+
+      <div>
+        <label className="font-sans text-xs text-mute block mb-2">
+          Como a imagem deve se ajustar ao espaço?
+        </label>
+        <input type="hidden" name="fitMode" value={fitMode} />
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setFitMode("cover")}
+            className={`text-left rounded-md border p-3 transition-colors ${
+              fitMode === "cover" ? "border-terracotta bg-terracotta/5" : "border-ink/10"
+            }`}
+          >
+            <p className="font-sans text-sm font-semibold text-ink">Preencher (recorta)</p>
+            <p className="font-sans text-[11px] text-mute mt-0.5">
+              Ocupa todo o espaço, cortando as bordas se a proporção não
+              combinar exatamente.
+            </p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setFitMode("contain")}
+            className={`text-left rounded-md border p-3 transition-colors ${
+              fitMode === "contain" ? "border-terracotta bg-terracotta/5" : "border-ink/10"
+            }`}
+          >
+            <p className="font-sans text-sm font-semibold text-ink">Ajustar (sem cortar)</p>
+            <p className="font-sans text-[11px] text-mute mt-0.5">
+              Mostra a imagem inteira, sem cortar — pode deixar uma faixa
+              vazia nas laterais se a proporção não combinar.
+            </p>
+          </button>
+        </div>
+        <p className="font-sans text-[11px] text-mute/70 mt-1.5">
+          Se a imagem (como uma logo com texto) está saindo cortada,
+          escolha &quot;Ajustar&quot;.
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
