@@ -89,7 +89,7 @@ export default async function PublicHome({
       </div>
 
       <div className="mx-auto max-w-6xl px-5 pt-5">
-        <AdSlot id="ad-home-top" minHeight="70px" />
+        <AdSlot id="ad-home-top" minHeight="140px" />
       </div>
 
       {/* Layout de 3 colunas em telas extra grandes: anúncio | conteúdo | anúncio.
