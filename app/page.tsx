@@ -63,7 +63,8 @@ export default async function PublicHome({
 
   // O destaque (card grande no topo) só aparece na primeira página, para
   // não repetir a mesma matéria em destaque em todas as páginas.
-  const [destaque, ...resto] = currentPage === 1 ? articles : [undefined, ...articles];
+  const destaque = currentPage === 1 ? articles[0] : undefined;
+  const resto = currentPage === 1 ? articles.slice(1) : articles;
 
   return (
     <main className="min-h-screen bg-paper">
