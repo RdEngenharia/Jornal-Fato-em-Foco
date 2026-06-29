@@ -123,7 +123,7 @@ export default async function PublicHome({
             href={`/materia/${destaque.id}`}
             className="group block relative rounded-2xl overflow-hidden mb-10 bg-ink"
           >
-            <div className="relative w-full aspect-[16/9] sm:aspect-[21/9]">
+            <div className="relative w-full min-h-[320px] aspect-[4/5] sm:aspect-[21/9]">
               {coverImages[destaque.id] ? (
                 <img
                   src={coverImages[destaque.id]}
@@ -133,16 +133,16 @@ export default async function PublicHome({
               ) : (
                 <PlaceholderArt seed={destaque.id} />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10" />
             </div>
-            <div className="absolute bottom-0 left-0 p-6 sm:p-10 max-w-3xl">
+            <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 sm:max-w-3xl">
               <span
-                className="inline-block font-sans text-xs font-bold uppercase tracking-wider text-white px-3 py-1 rounded-full mb-4"
+                className="inline-block font-sans text-xs font-bold uppercase tracking-wider text-white px-3 py-1 rounded-full mb-3 sm:mb-4"
                 style={{ backgroundColor: categoryColor(destaque.category) }}
               >
                 {destaque.category}
               </span>
-              <h2 className="font-display text-3xl sm:text-5xl font-extrabold text-white leading-tight mb-3">
+              <h2 className="font-display text-2xl sm:text-5xl font-extrabold text-white leading-tight mb-3">
                 {destaque.title}
               </h2>
               {destaque.lead && (
@@ -150,7 +150,7 @@ export default async function PublicHome({
                   {destaque.lead}
                 </p>
               )}
-              <p className="font-sans text-xs text-white/60 mt-4 uppercase tracking-wide">
+              <p className="font-sans text-xs text-white/60 mt-3 sm:mt-4 uppercase tracking-wide">
                 {formatDate(destaque.published_at ?? destaque.created_at)}
               </p>
             </div>
