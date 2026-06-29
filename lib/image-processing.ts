@@ -4,10 +4,14 @@
 // d'água aplicada (ou desfocada), sem precisar de processamento no
 // servidor.
 
+const WATERMARK_LOGO_URL = "/logo.png";
 const WATERMARK_TEXT = "RD Notícias";
 
 /**
- * Aplica uma marca d'água discreta no canto inferior direito da imagem.
+ * Aplica uma marca d'água elegante no canto inferior direito: a logo
+ * (imagem real) ao lado do nome, sobre um gradiente escuro sutil que
+ * garante legibilidade sem precisar de uma caixa sólida — efeito mais
+ * discreto e profissional do que texto-sobre-retângulo.
  * Recebe um File e devolve um novo File (mesmo tipo MIME) já com a marca.
  */
 export async function applyWatermark(file: File): Promise<File> {
@@ -20,26 +24,46 @@ export async function applyWatermark(file: File): Promise<File> {
 
   ctx.drawImage(img, 0, 0);
 
-  // Tamanho da fonte proporcional à imagem, com mínimo legível.
-  const fontSize = Math.max(14, Math.round(img.width * 0.022));
-  ctx.font = `600 ${fontSize}px sans-serif`;
+  // Gradiente escuro sutil subindo do canto inferior direito — garante
+  // contraste para a marca sem precisar de uma caixa sólida visível.
+  const gradientHeight = img.height * 0.22;
+  const gradient = ctx.createLinearGradient(0, img.height - gradientHeight, 0, img.height);
+  gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
+  gradient.addColorStop(1, "rgba(0, 0, 0, 0.45)");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, img.height - gradientHeight, img.width, gradientHeight);
+
+  const fontSize = Math.max(13, Math.round(img.width * 0.02));
+  const logoSize = fontSize * 2.2;
+  const padding = fontSize * 0.9;
+
+  ctx.font = `500 ${fontSize}px sans-serif`;
   const textWidth = ctx.measureText(WATERMARK_TEXT).width;
-  const paddingX = fontSize * 0.8;
-  const paddingY = fontSize * 0.6;
+  const gap = fontSize * 0.5;
 
-  const x = img.width - textWidth - paddingX * 2;
-  const y = img.height - fontSize - paddingY;
-  const boxWidth = textWidth + paddingX * 2;
-  const boxHeight = fontSize + paddingY * 1.4;
+  const totalWidth = logoSize + gap + textWidth;
+  const startX = img.width - totalWidth - padding;
+  const centerY = img.height - padding - logoSize / 2;
 
-  // Fundo semi-transparente para garantir legibilidade em qualquer foto.
-  ctx.fillStyle = "rgba(26, 26, 24, 0.55)";
-  roundedRect(ctx, x, y, boxWidth, boxHeight, 6);
-  ctx.fill();
+  // Tenta carregar e desenhar a logo real; se falhar (rede, CORS), o
+  // texto sozinho ainda funciona como marca d'água válida.
+  try {
+    const logo = await loadImage(WATERMARK_LOGO_URL);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(startX + logoSize / 2, centerY, logoSize / 2, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(logo, startX, centerY - logoSize / 2, logoSize, logoSize);
+    ctx.restore();
+  } catch {
+    // Sem logo disponível: segue só com o texto, deslocado para a posição da logo.
+  }
 
-  ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
   ctx.textBaseline = "middle";
-  ctx.fillText(WATERMARK_TEXT, x + paddingX, y + boxHeight / 2);
+  ctx.font = `500 ${fontSize}px sans-serif`;
+  ctx.fillText(WATERMARK_TEXT, startX + logoSize + gap, centerY + fontSize * 0.05);
 
   return canvasToFile(canvas, file);
 }
@@ -85,23 +109,6 @@ function loadImage(file: File): Promise<HTMLImageElement> {
     img.onerror = reject;
     img.src = URL.createObjectURL(file);
   });
-}
-
-function roundedRect(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number
-) {
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.arcTo(x + width, y, x + width, y + height, radius);
-  ctx.arcTo(x + width, y + height, x, y + height, radius);
-  ctx.arcTo(x, y + height, x, y, radius);
-  ctx.arcTo(x, y, x + width, y, radius);
-  ctx.closePath();
 }
 
 function canvasToFile(canvas: HTMLCanvasElement, originalFile: File): Promise<File> {
