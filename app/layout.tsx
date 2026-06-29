@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Source_Serif_4, Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const sourceSerif = Source_Serif_4({
@@ -27,6 +28,7 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className={`${sourceSerif.variable} ${inter.variable} font-sans`}>
         {children}
+        <Analytics />
       </body>
     </html>
   );
