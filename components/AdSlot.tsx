@@ -80,7 +80,7 @@ export default async function AdSlot({
 
   const whatsappNumber = await getWhatsAppNumber();
   const message = encodeURIComponent(
-    "Olá! Vi o espaço de publicidade no Fato em Foco e quero saber mais sobre como anunciar."
+    "Olá! Vi o espaço de publicidade no RD Notícias e quero saber mais sobre como anunciar."
   );
 
   return (

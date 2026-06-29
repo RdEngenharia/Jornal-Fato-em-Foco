@@ -13,7 +13,7 @@ const CATEGORY_HASHTAGS: Record<string, string> = {
   turismo: "#PortoSeguro #Turismo #CostaDoDescobrimento",
 };
 
-const BASE_HASHTAGS = "#FatoEmFoco #NotíciasBA";
+const BASE_HASHTAGS = "#RDNoticias #NotíciasBA";
 
 type Props = {
   title: string;

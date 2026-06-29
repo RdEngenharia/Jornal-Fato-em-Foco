@@ -4,7 +4,7 @@
 // d'água aplicada (ou desfocada), sem precisar de processamento no
 // servidor.
 
-const WATERMARK_TEXT = "Fato em Foco";
+const WATERMARK_TEXT = "RD Notícias";
 
 /**
  * Aplica uma marca d'água discreta no canto inferior direito da imagem.

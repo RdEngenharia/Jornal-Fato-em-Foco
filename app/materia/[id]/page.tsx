@@ -98,9 +98,9 @@ export default async function ArticlePage({
       <header className="border-b border-ink/10 px-6 py-6 sm:px-10">
         <div className="mx-auto max-w-3xl flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="Fato em Foco" className="w-9 h-9 rounded-full" />
+            <img src="/logo.png" alt="RD Notícias" className="w-9 h-9 rounded-full" />
             <h1 className="font-display text-2xl font-bold text-ink tracking-tight">
-              Fato em Foco
+              RD Notícias
             </h1>
           </Link>
           <p className="font-sans text-xs uppercase tracking-widest text-mute">
@@ -209,7 +209,7 @@ export default async function ArticlePage({
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6">
             <p className="font-sans text-xs text-mute">
-              Fato em Foco — conteúdo apurado a partir de fontes públicas e
+              RD Notícias — conteúdo apurado a partir de fontes públicas e
               portais regionais, com revisão editorial antes da publicação.
             </p>
             <Link
