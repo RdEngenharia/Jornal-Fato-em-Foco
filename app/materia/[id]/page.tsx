@@ -103,7 +103,7 @@ export default async function ArticlePage({
               RD Notícias
             </h1>
           </Link>
-          <p className="font-sans text-xs uppercase tracking-widest text-mute">
+          <p className="hidden sm:block font-sans text-xs uppercase tracking-widest text-mute">
             Porto Seguro &amp; Costa do Descobrimento
           </p>
         </div>
