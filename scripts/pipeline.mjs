@@ -95,6 +95,24 @@ const FEEDS = [
     defaultCategory: "geral",
   },
   {
+    // Sindicato dos trabalhadores do comércio de Eunápolis, Porto Seguro
+    // e Santa Cruz Cabrália — fonte hiperlocal de direitos trabalhistas,
+    // convenções coletivas e notícias do setor.
+    name: "Sincom - Sindicato dos Comerciários",
+    type: "portal_regional",
+    url: "https://sincomeps.com.br/feed/",
+    defaultCategory: "economia",
+  },
+  {
+    // Sindicato patronal do comércio de Porto Seguro, Santa Cruz Cabrália
+    // e Belmonte — fonte hiperlocal de convenções coletivas, notícias do
+    // comércio varejista e economia local.
+    name: "Sindescobrimento - Sindicato do Comércio",
+    type: "portal_regional",
+    url: "https://sindescobrimento-ba.com.br/feed/",
+    defaultCategory: "economia",
+  },
+  {
     // Fonte com linha editorial declarada (não-neutra). Mantida no
     // pipeline a pedido do editor, mas marcada com tipo diferenciado
     // para reforçar o cuidado na revisão manual — ver orientação no
@@ -268,6 +286,8 @@ function isRelevant(item) {
     "TSE - Tribunal Superior Eleitoral",
     "Agência Brasil - Política",
     "Governo da Bahia - SECOM",
+    "Sincom - Sindicato dos Comerciários",
+    "Sindescobrimento - Sindicato do Comércio",
   ];
   if (INSTITUTIONAL_SOURCES.includes(item.sourceName)) {
     return true;
