@@ -99,6 +99,16 @@ const FEEDS = [
     url: "https://www.ba.gov.br/comunicacao/feed",
     defaultCategory: "geral",
   },
+  {
+    // Fonte com linha editorial declarada (não-neutra). Mantida no
+    // pipeline a pedido do editor, mas marcada com tipo diferenciado
+    // para reforçar o cuidado na revisão manual — ver orientação no
+    // prompt do Redator sobre como tratar fontes deste tipo.
+    name: "Revista Oeste",
+    type: "editorial_partidario",
+    url: "https://revistaoeste.com/feed/",
+    defaultCategory: "politica",
+  },
 ];
 
 const RELIABILITY_THRESHOLD = 50; // matérias abaixo disso não vão para o Redator
@@ -417,7 +427,7 @@ const VALID_CATEGORIES = ["geral", "politica", "justica", "economia", "policia",
 
 async function writeArticle(cluster) {
   const sourcesText = cluster
-    .map((i) => `- ${i.sourceName} ("${i.title}"): ${i.excerpt}`)
+    .map((i) => `- [${i.sourceType}] ${i.sourceName} ("${i.title}"): ${i.excerpt}`)
     .join("\n");
 
   // A categoria sugerida pela fonte (ex: feed do TSE -> "politica") serve
@@ -436,6 +446,8 @@ CRITÉRIO EDITORIAL SOBRE POLÍTICA: este jornal publica política e eleições,
 CRITÉRIO EDITORIAL SOBRE CONCURSOS PÚBLICOS E EDITAIS: notícias do Governo do Estado da Bahia sobre autorização, abertura, ou retomada de concurso público (qualquer órgão estadual) são SEMPRE relevantes para este jornal, mesmo sem menção direta à região — vagas de concurso estadual podem ser disputadas por qualquer morador da Bahia, incluindo o extremo sul. Use categoria "geral" ou "economia" para esse tipo de matéria, e inclua no corpo, quando disponível na fonte: órgão responsável, número de vagas, cargo, e se há data prevista para o edital.
 
 CRITÉRIO SOBRE A CATEGORIA "justica" x "politica": use "justica" para matérias cujo fato central é uma decisão judicial, processo, julgamento, ou ato de um órgão do Poder Judiciário (STF, STJ, TJ-BA, varas federais/estaduais, Ministério Público) — por exemplo, decisões sobre disputas de terra, ordens de desocupação, sentenças, prisões decretadas pela Justiça. Use "politica" para matérias sobre atuação de políticos eleitos, partidos, eleições, e atos do Poder Executivo ou Legislativo (prefeito, câmara, governo do estado, congresso). Uma notícia pode envolver os dois poderes — nesse caso, classifique pelo fato central da matéria (ex: "STF suspende decisão sobre terra indígena" é "justica", mesmo envolvendo um tema com repercussão política).
+
+CUIDADO COM FONTES DE TIPO "editorial_partidario": se alguma das fontes do cluster abaixo for do tipo "editorial_partidario", redobre a separação entre fato e opinião. Escreva SOMENTE o que é fato verificável (quem, o quê, quando, onde) e remova qualquer linguagem de interpretação, especulação sobre intenção política, ou enquadramento favorável/desfavorável a qualquer lado presente no texto original. Se, depois de remover a especulação, não sobrar nenhum fato concreto e verificável para relatar (ex: a matéria é só análise/opinião do início ao fim, sem nenhum evento real relatado), responda apenas com {"skip": true}.
 
 Fontes:
 ${sourcesText}
