@@ -13,6 +13,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   esporte: "Esporte",
   saude: "Saúde",
   turismo: "Turismo",
+  educacao: "Educação",
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -25,6 +26,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   esporte: "#5C7A5E",
   saude: "#8F3A1F",
   turismo: "#C1502E",
+  educacao: "#2E4F8F",
 };
 
 const SIZE = 1080;

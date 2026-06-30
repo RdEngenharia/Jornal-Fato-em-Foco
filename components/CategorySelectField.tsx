@@ -12,6 +12,7 @@ const CATEGORIES = [
   { value: "esporte", label: "Esporte" },
   { value: "saude", label: "Saúde" },
   { value: "turismo", label: "Turismo" },
+  { value: "educacao", label: "Educação" },
 ];
 
 type Props = {

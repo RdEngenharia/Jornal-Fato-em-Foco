@@ -13,6 +13,7 @@ const CATEGORY_HASHTAGS: Record<string, string> = {
   esporte: "#PortoSeguro #Esporte #Bahia",
   saude: "#PortoSeguro #Saúde #Bahia",
   turismo: "#PortoSeguro #Turismo #CostaDoDescobrimento",
+  educacao: "#PortoSeguro #Educação #Bahia",
 };
 
 const BASE_HASHTAGS = "#RDNoticias #NotíciasBA";

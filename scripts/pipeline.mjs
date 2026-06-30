@@ -418,7 +418,7 @@ Responda no formato exato:
 // ----------------------------------------------------------------
 // 5) REDATOR — gera a matéria no tom do "jornal", com atribuição
 // ----------------------------------------------------------------
-const VALID_CATEGORIES = ["geral", "politica", "justica", "economia", "policia", "cultura", "esporte", "saude", "turismo"];
+const VALID_CATEGORIES = ["geral", "politica", "justica", "economia", "policia", "cultura", "esporte", "saude", "turismo", "educacao"];
 
 async function writeArticle(cluster) {
   const sourcesText = cluster

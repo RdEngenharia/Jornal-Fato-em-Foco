@@ -11,6 +11,7 @@ const CATEGORIES = [
   { value: "esporte", label: "Esporte" },
   { value: "saude", label: "Saúde" },
   { value: "turismo", label: "Turismo" },
+  { value: "educacao", label: "Educação" },
 ];
 
 export default function CategoryTabs({ active }: { active: string }) {
