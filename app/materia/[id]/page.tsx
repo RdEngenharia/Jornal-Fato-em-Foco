@@ -162,7 +162,7 @@ export default async function ArticlePage({
                 key={i}
                 img={img}
                 alt={article.title}
-                className="w-full aspect-[16/9] object-cover rounded-xl my-6"
+                className="w-full max-h-[700px] object-contain rounded-xl my-6 bg-ink/5"
               />
             );
           })}
