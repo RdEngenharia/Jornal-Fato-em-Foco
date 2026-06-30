@@ -49,7 +49,7 @@ export default async function PublishedAdminPage() {
                 {article.title}
               </h2>
               <p className="font-sans text-xs text-mute mt-1">
-                Publicada em {new Date(article.published_at ?? article.created_at).toLocaleString("pt-BR")} ·{" "}
+                Publicada em {new Date(article.published_at ?? article.created_at).toLocaleString("pt-BR", { timeZone: "America/Bahia" })} ·{" "}
                 {article.category}
               </p>
             </div>

@@ -23,7 +23,7 @@ function daysUntil(dateStr: string): number {
 
 function expiryLabel(dateStr: string): string {
   const days = daysUntil(dateStr);
-  const formatted = new Date(dateStr).toLocaleDateString("pt-BR");
+  const formatted = new Date(dateStr).toLocaleDateString("pt-BR", { timeZone: "America/Bahia" });
   if (days < 0) return `Expirou em ${formatted}`;
   if (days === 0) return `Expira hoje (${formatted})`;
   if (days <= 7) return `Expira em ${days} dia(s) — ${formatted}`;

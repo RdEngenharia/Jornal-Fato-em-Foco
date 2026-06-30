@@ -133,7 +133,7 @@ export default async function AdminHome({
                 {article.title}
               </h2>
               <p className="font-sans text-xs text-mute mt-1">
-                {new Date(article.created_at).toLocaleString("pt-BR")} ·{" "}
+                {new Date(article.created_at).toLocaleString("pt-BR", { timeZone: "America/Bahia" })} ·{" "}
                 {article.category}
               </p>
             </div>

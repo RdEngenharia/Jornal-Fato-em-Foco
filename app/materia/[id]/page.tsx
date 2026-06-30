@@ -16,6 +16,7 @@ function formatDate(dateStr: string) {
     day: "2-digit",
     month: "long",
     year: "numeric",
+    timeZone: "America/Bahia",
   });
 }
 
