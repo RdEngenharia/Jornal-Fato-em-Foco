@@ -276,9 +276,31 @@ function isRelevant(item) {
 // Versão de teste: agrupa por similaridade de título (Jaccard simples).
 // Numa v2, troque por embeddings.
 // ----------------------------------------------------------------
+// Palavras muito comuns no contexto regional do jornal — aparecem em
+// quase todo título (nome de cidades, conectivos), então não devem
+// contar como sinal de "mesmo assunto" na checagem de similaridade.
+// Sem isso, dois títulos sobre fatos completamente diferentes mas que
+// mencionam "Porto Seguro" e "prefeitura" ficavam com similaridade
+// artificialmente alta.
+const STOPWORDS = new Set([
+  "a", "o", "as", "os", "de", "da", "do", "das", "dos", "em", "no", "na", "nos", "nas",
+  "para", "por", "com", "sem", "e", "ou", "que", "um", "uma", "uns", "umas", "é", "foi",
+  "porto", "seguro", "bahia", "ba", "região", "cidade", "município",
+]);
+
+function normalizeForSimilarity(text) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove acentos
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !STOPWORDS.has(w));
+}
+
 function similarity(a, b) {
-  const setA = new Set(a.toLowerCase().split(/\s+/));
-  const setB = new Set(b.toLowerCase().split(/\s+/));
+  const setA = new Set(normalizeForSimilarity(a));
+  const setB = new Set(normalizeForSimilarity(b));
+  if (setA.size === 0 || setB.size === 0) return 0;
   const intersection = new Set([...setA].filter((w) => setB.has(w)));
   const union = new Set([...setA, ...setB]);
   return intersection.size / union.size;
@@ -310,7 +332,7 @@ function clusterItems(items) {
 // aparecendo no RSS por alguns dias após a publicação original.
 // ----------------------------------------------------------------
 const DUPLICATE_CHECK_WINDOW_DAYS = 5;
-const DUPLICATE_SIMILARITY_THRESHOLD = 0.35;
+const DUPLICATE_SIMILARITY_THRESHOLD = 0.45;
 
 async function getRecentTitles() {
   const { rows } = await sql.query(
@@ -320,10 +342,15 @@ async function getRecentTitles() {
   return rows.map((r) => r.title);
 }
 
-function isDuplicate(clusterTitle, existingTitles) {
-  return existingTitles.some(
-    (existing) => similarity(clusterTitle, existing) > DUPLICATE_SIMILARITY_THRESHOLD
-  );
+function findDuplicateMatch(clusterTitle, existingTitles) {
+  let best = null;
+  for (const existing of existingTitles) {
+    const score = similarity(clusterTitle, existing);
+    if (score > DUPLICATE_SIMILARITY_THRESHOLD && (!best || score > best.score)) {
+      best = { title: existing, score };
+    }
+  }
+  return best;
 }
 
 // ----------------------------------------------------------------
@@ -523,8 +550,11 @@ async function main() {
 
     console.log(`\n→ Validando cluster: "${cluster[0].title}"`);
 
-    if (isDuplicate(cluster[0].title, existingTitles)) {
-      console.log("   🔁 Já existe matéria parecida no banco — descartado como duplicado.");
+    const duplicateMatch = findDuplicateMatch(cluster[0].title, existingTitles);
+    if (duplicateMatch) {
+      console.log(
+        `   🔁 Descartado como duplicado (similaridade ${(duplicateMatch.score * 100).toFixed(0)}%) de: "${duplicateMatch.title}"`
+      );
       continue;
     }
 
