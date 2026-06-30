@@ -5,7 +5,7 @@ import { useState } from "react";
 const CATEGORIES = [
   { value: "geral", label: "Geral" },
   { value: "politica", label: "Política" },
-  { value: "negocios", label: "Negócios" },
+  { value: "economia", label: "Economia" },
   { value: "policia", label: "Polícia" },
   { value: "justica", label: "Justiça" },
   { value: "cultura", label: "Cultura" },

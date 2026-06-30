@@ -72,7 +72,7 @@ const FEEDS = [
     name: "Agência Sebrae de Notícias - Bahia",
     type: "oficial",
     url: "https://ba.agenciasebrae.com.br/feed/",
-    defaultCategory: "negocios",
+    defaultCategory: "economia",
   },
   {
     name: "Agência Brasil - Política",
@@ -373,7 +373,7 @@ Responda no formato exato:
 // ----------------------------------------------------------------
 // 5) REDATOR — gera a matéria no tom do "jornal", com atribuição
 // ----------------------------------------------------------------
-const VALID_CATEGORIES = ["geral", "politica", "justica", "negocios", "policia", "cultura", "esporte", "saude", "turismo"];
+const VALID_CATEGORIES = ["geral", "politica", "justica", "economia", "policia", "cultura", "esporte", "saude", "turismo"];
 
 async function writeArticle(cluster) {
   const sourcesText = cluster
@@ -383,7 +383,7 @@ async function writeArticle(cluster) {
   // A categoria sugerida pela fonte (ex: feed do TSE -> "politica") serve
   // como forte indício, mas o LLM decide a categoria final com base no
   // conteúdo real — uma notícia do feed do Sebrae pode, por exemplo, ser
-  // mais sobre "turismo" do que "negocios" dependendo do assunto.
+  // mais sobre "turismo" do que "economia" dependendo do assunto.
   const suggestedCategory = cluster[0]?.defaultCategory ?? "geral";
 
   const prompt = `Você é redator de um jornal local digital focado no extremo sul da Bahia (Porto Seguro, Eunápolis, Trancoso, Arraial d'Ajuda, Costa do Descobrimento e região). Escreva uma matéria jornalística clara, objetiva e bem estruturada com base EXCLUSIVAMENTE nas informações das fontes abaixo. Cite as fontes pelo nome no corpo do texto (ex: "segundo o Diário Oficial..."). Não invente fatos que não estejam nas fontes.
@@ -393,7 +393,7 @@ CRITÉRIO EDITORIAL SOBRE POLÍTICA: este jornal publica política e eleições,
 - Eleições/política NACIONAL ou ESTADUAL (presidência, governo do estado, TSE, partidos em Brasília) -> só é relevante se tiver IMPACTO DIRETO E CONCRETO no dia a dia do leitor local (ex: nova lei eleitoral que muda prazo de votação, decisão do TSE que afeta todos os eleitores). Bastidores partidários, disputas internas de partido, fofoca política, ou burocracia administrativa interna (sistemas internos do TSE, prestação de contas de partidos, recesso forense) NÃO são relevantes para esse jornal.
 - Se as fontes forem sobre política nacional SEM relevância direta para o leitor local, responda apenas com {"skip": true} e nada mais.
 
-CRITÉRIO EDITORIAL SOBRE CONCURSOS PÚBLICOS E EDITAIS: notícias do Governo do Estado da Bahia sobre autorização, abertura, ou retomada de concurso público (qualquer órgão estadual) são SEMPRE relevantes para este jornal, mesmo sem menção direta à região — vagas de concurso estadual podem ser disputadas por qualquer morador da Bahia, incluindo o extremo sul. Use categoria "geral" ou "negocios" para esse tipo de matéria, e inclua no corpo, quando disponível na fonte: órgão responsável, número de vagas, cargo, e se há data prevista para o edital.
+CRITÉRIO EDITORIAL SOBRE CONCURSOS PÚBLICOS E EDITAIS: notícias do Governo do Estado da Bahia sobre autorização, abertura, ou retomada de concurso público (qualquer órgão estadual) são SEMPRE relevantes para este jornal, mesmo sem menção direta à região — vagas de concurso estadual podem ser disputadas por qualquer morador da Bahia, incluindo o extremo sul. Use categoria "geral" ou "economia" para esse tipo de matéria, e inclua no corpo, quando disponível na fonte: órgão responsável, número de vagas, cargo, e se há data prevista para o edital.
 
 CRITÉRIO SOBRE A CATEGORIA "justica" x "politica": use "justica" para matérias cujo fato central é uma decisão judicial, processo, julgamento, ou ato de um órgão do Poder Judiciário (STF, STJ, TJ-BA, varas federais/estaduais, Ministério Público) — por exemplo, decisões sobre disputas de terra, ordens de desocupação, sentenças, prisões decretadas pela Justiça. Use "politica" para matérias sobre atuação de políticos eleitos, partidos, eleições, e atos do Poder Executivo ou Legislativo (prefeito, câmara, governo do estado, congresso). Uma notícia pode envolver os dois poderes — nesse caso, classifique pelo fato central da matéria (ex: "STF suspende decisão sobre terra indígena" é "justica", mesmo envolvendo um tema com repercussão política).
 

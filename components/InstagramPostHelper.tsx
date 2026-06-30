@@ -6,7 +6,7 @@ import { generateInstagramCard } from "@/lib/instagram-card";
 const CATEGORY_HASHTAGS: Record<string, string> = {
   geral: "#PortoSeguro #CostaDoDescobrimento",
   politica: "#PortoSeguro #Política #Bahia",
-  negocios: "#PortoSeguro #Negócios #Bahia",
+  economia: "#PortoSeguro #Economia #Bahia",
   policia: "#PortoSeguro #SegurançaPública #Bahia",
   justica: "#PortoSeguro #Justiça #Bahia",
   cultura: "#PortoSeguro #Cultura #CostaDoDescobrimento",

@@ -18,6 +18,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   esporte: "#2E7D5C",
   saude: "#2E7D5C",
   turismo: "#C1862E",
+  economia: "#1A1A18",
 };
 
 function categoryColor(category: string) {

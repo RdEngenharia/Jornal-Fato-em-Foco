@@ -6,7 +6,7 @@
 const CATEGORY_LABELS: Record<string, string> = {
   geral: "Geral",
   politica: "Política",
-  negocios: "Negócios",
+  economia: "Economia",
   policia: "Polícia",
   justica: "Justiça",
   cultura: "Cultura",
@@ -18,7 +18,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 const CATEGORY_COLORS: Record<string, string> = {
   geral: "#C1502E",
   politica: "#5C7A5E",
-  negocios: "#1A1A18",
+  economia: "#1A1A18",
   policia: "#8F3A1F",
   justica: "#5C7A5E",
   cultura: "#C1502E",
