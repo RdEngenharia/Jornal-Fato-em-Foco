@@ -24,27 +24,22 @@ const { sql } = await import("@vercel/postgres");
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 // Alguns sites (atrás de Cloudflare ou proteção similar) bloqueiam
-// requisições sem um conjunto completo de headers que pareça vir de um
-// navegador real, especialmente vindas de IPs de datacenter (como os
-// do GitHub Actions). Esses headers reduzem a chance de bloqueio 403,
-// embora não eliminem o risco por completo em sites com proteção
-// anti-bot mais sofisticada (ex: Cloudflare com checagem de
-// comportamento via JavaScript, que nenhum conjunto de headers HTTP
-// consegue contornar).
+// requisições sem um User-Agent que pareça vir de um navegador real,
+// especialmente vindas de IPs de datacenter (como os do GitHub Actions).
+// Esse header reduz a chance de bloqueio 403, embora não elimine o risco
+// por completo em sites com proteção anti-bot mais sofisticada.
+//
+// NOTA: já tentamos expandir para um conjunto mais completo de headers
+// (Accept-Language, Sec-Fetch-*, etc.), mas isso causou regressão em
+// feeds que antes funcionavam normalmente (provavelmente algum desses
+// servidores reagindo mal a headers que não esperava). Voltamos para a
+// versão simples e testada.
 const BROWSER_USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
 const BROWSER_HEADERS = {
   "User-Agent": BROWSER_USER_AGENT,
   Accept: "application/rss+xml, application/xml, text/xml, */*",
-  "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
-  "Accept-Encoding": "gzip, deflate, br",
-  Connection: "keep-alive",
-  "Upgrade-Insecure-Requests": "1",
-  "Sec-Fetch-Dest": "document",
-  "Sec-Fetch-Mode": "navigate",
-  "Sec-Fetch-Site": "none",
-  "Cache-Control": "no-cache",
 };
 
 const parser = new Parser({
