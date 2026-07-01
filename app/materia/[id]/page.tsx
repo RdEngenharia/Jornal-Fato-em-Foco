@@ -108,6 +108,37 @@ export async function generateMetadata({
   };
 }
 
+// Renderiza um parágrafo de texto suportando links no formato Markdown:
+// [texto do link](https://url.com) → <a href="...">texto do link</a>
+// O restante do texto é renderizado normalmente, sem processar outros
+// elementos Markdown (negrito, itálico, etc.) — mantendo a simplicidade
+// e evitando que o texto vire HTML não intencional.
+function TextWithLinks({ content }: { content: string }) {
+  const parts = content.split(/(\[[^\]]+\]\(https?:\/\/[^)]+\))/g);
+
+  return (
+    <p className="whitespace-pre-line">
+      {parts.map((part, i) => {
+        const match = part.match(/^\[([^\]]+)\]\((https?:\/\/[^)]+)\)$/);
+        if (match) {
+          return (
+            <a
+              key={i}
+              href={match[2]}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-terracotta underline hover:text-terracotta-dark transition-colors"
+            >
+              {match[1]}
+            </a>
+          );
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </p>
+  );
+}
+
 export default async function ArticlePage({
   params,
 }: {
@@ -185,11 +216,7 @@ export default async function ArticlePage({
         <div className="font-sans text-base text-ink leading-relaxed space-y-4">
           {bodyBlocks.map((block, i) => {
             if (block.type === "text") {
-              return (
-                <p key={i} className="whitespace-pre-line">
-                  {block.content}
-                </p>
-              );
+              return <TextWithLinks key={i} content={block.content} />;
             }
             // block.type === "image" — busca a imagem pela posição (1-based)
             const img = images[block.index - 1];
