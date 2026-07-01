@@ -464,6 +464,12 @@ CRITÉRIO SOBRE A CATEGORIA "justica" x "politica": use "justica" para matérias
 
 CUIDADO COM FONTES DE TIPO "editorial_partidario": se alguma das fontes do cluster abaixo for do tipo "editorial_partidario", redobre a separação entre fato e opinião. Escreva SOMENTE o que é fato verificável (quem, o quê, quando, onde) e remova qualquer linguagem de interpretação, especulação sobre intenção política, ou enquadramento favorável/desfavorável a qualquer lado presente no texto original. Se, depois de remover a especulação, não sobrar nenhum fato concreto e verificável para relatar (ex: a matéria é só análise/opinião do início ao fim, sem nenhum evento real relatado), responda apenas com {"skip": true}.
 
+LINKS CLICÁVEIS NO CORPO: quando a matéria mencionar um site, portal, formulário, edital ou endereço web onde o leitor deva tomar uma ação (se inscrever, acessar edital, consultar lista, baixar documento, etc.), formate o link usando a sintaxe Markdown: [texto descritivo](https://url.com). Exemplos:
+- Inscrições pelo site [Portal de Seleção](https://selecao.ba.gov.br)
+- O edital completo está disponível em [site da Prefeitura](https://prefeitura.portoseguro.ba.gov.br)
+- Acesse o aplicativo [Caixa Tem](https://play.google.com/store/apps/details?id=br.gov.caixa.tem)
+Use SOMENTE para URLs que estejam explicitamente mencionadas nas fontes — não invente URLs. Se a fonte mencionar um site sem dar a URL exata, cite o nome do site sem criar um link.
+
 Fontes:
 ${sourcesText}
 
