@@ -15,8 +15,16 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Painel Editorial",
-  description: "Painel de revisão e publicação de matérias automatizadas.",
+  title: {
+    default: "RD Notícias | Porto Seguro & Costa do Descobrimento",
+    template: "%s | RD Notícias",
+  },
+  description: "Notícias de Porto Seguro, Eunápolis, Santa Cruz Cabrália e região. A verdade onde acontece.",
+  openGraph: {
+    siteName: "RD Notícias",
+    locale: "pt_BR",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

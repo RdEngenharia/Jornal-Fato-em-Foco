@@ -71,6 +71,43 @@ function parseBodyWithImages(body: string): BodyBlock[] {
   return blocks;
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const article = await getPublishedArticleById(Number(params.id));
+  if (!article) return {};
+
+  const media = await getMediaByArticleId(Number(params.id));
+  const coverImage = media.find((m) => m.media_type === "image");
+
+  const title = `${article.title} | RD Notícias`;
+  const description = article.lead ?? article.title;
+  const url = `https://www.rdnoticiasba.com.br/materia/${params.id}`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: "RD Notícias",
+      locale: "pt_BR",
+      type: "article",
+      publishedTime: article.published_at ?? article.created_at,
+      ...(coverImage ? { images: [{ url: coverImage.url, width: 1200, height: 630 }] } : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(coverImage ? { images: [coverImage.url] } : {}),
+    },
+  };
+}
+
 export default async function ArticlePage({
   params,
 }: {

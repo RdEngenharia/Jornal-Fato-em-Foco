@@ -9,6 +9,20 @@ import FeaturedScoreCard from "@/components/FeaturedScoreCard";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "RD Notícias | Porto Seguro & Costa do Descobrimento",
+  description: "Notícias de Porto Seguro, Eunápolis, Santa Cruz Cabrália e região. A verdade onde acontece.",
+  openGraph: {
+    title: "RD Notícias",
+    description: "Notícias de Porto Seguro, Eunápolis, Santa Cruz Cabrália e região.",
+    url: "https://www.rdnoticiasba.com.br",
+    siteName: "RD Notícias",
+    locale: "pt_BR",
+    type: "website",
+    images: [{ url: "https://www.rdnoticiasba.com.br/logo.png", width: 630, height: 630 }],
+  },
+};
+
 const CATEGORY_COLORS: Record<string, string> = {
   geral: "#C1502E",
   policia: "#8F3A1F",
